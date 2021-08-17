@@ -495,10 +495,13 @@ def get_auro_score(s):
     resultdic['ROC'] = {}
     if dff.loc[t-1,"ROC"]>0:
         dff.loc[t-1,"ROC"] = 'upwardtrend'
+        resultdic['ROC']['prediction'] = 'upwardtrend'
     elif dff.loc[t-1,"ROC"]<0:
         dff.loc[t-1,"ROC"] = 'downwardtrend'
+        resultdic['ROC']['prediction'] = 'downwardtrend'
     else:
         dff.loc[t-1,"ROC"] = 'neutral'
+        resultdic['ROC']['prediction'] = 'neutral'
     
     
     # In[3641]:
@@ -506,10 +509,13 @@ def get_auro_score(s):
     resultdic['CMO'] = {}
     if dff.loc[t-1,"CMO"]>50:
         dff.loc[t-1,"CMO"] = 'upwardtrend'
+        resultdic['CMO']['prediction'] = 'upwardtrend'
     elif dff.loc[t-1,"CMO"]<-50:
         dff.loc[t-1,"CMO"] = 'downwardtrend'
+        resultdic['CMO']['prediction'] = 'downwardtrend'
     else:
         dff.loc[t-1,"CMO"] = 'neutral'
+        resultdic['CMO']['prediction'] = 'neutral'
     
     
     # In[3642]:
