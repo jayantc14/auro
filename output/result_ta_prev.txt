@@ -1,0 +1,176 @@
+{
+    "result": {
+        "APO": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 124,
+            "FallRate": 0.3629032258064516,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 45,
+            "NextDayRise": 79,
+            "prediction": "downwardtrend"
+        },
+        "AR": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 124,
+            "FallRate": 0.31451612903225806,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 39,
+            "NextDayRise": 85,
+            "prediction": "upwardtrend"
+        },
+        "Auroscore": 0.9999952483572974,
+        "BOLL": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 116,
+            "FallRate": 0.9224137931034483,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 107,
+            "NextDayRise": 9,
+            "prediction": "neutral"
+        },
+        "CCI": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 46,
+            "FallRate": 0.2826086956521739,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 13,
+            "NextDayRise": 33,
+            "prediction": "overbought"
+        },
+        "CMO": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 0,
+            "FallRate": 0.0,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 0,
+            "NextDayRise": 0,
+            "prediction": "neutral"
+        },
+        "EMA": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 91,
+            "FallRate": 0.0,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 0,
+            "NextDayRise": 91,
+            "prediction": "overbought"
+        },
+        "KC": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 19,
+            "FallRate": 0.15789473684210525,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 3,
+            "NextDayRise": 16,
+            "prediction": "neutral"
+        },
+        "KDJ": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 9,
+            "FallRate": 0.2222222222222222,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 2,
+            "NextDayRise": 7,
+            "prediction": "neutral"
+        },
+        "MA": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 42,
+            "FallRate": 0.2619047619047619,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 11,
+            "NextDayRise": 31,
+            "prediction": "Buysignal"
+        },
+        "MACD": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 124,
+            "FallRate": 0.5241935483870968,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 65,
+            "NextDayRise": 59,
+            "prediction": "overbought"
+        },
+        "PPO": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 12,
+            "FallRate": 0.0,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 0,
+            "NextDayRise": 12,
+            "prediction": "neutral"
+        },
+        "PSY": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 21,
+            "FallRate": 0.09523809523809523,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 2,
+            "NextDayRise": 19,
+            "prediction": "neutral"
+        },
+        "ROC": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 124,
+            "FallRate": 0.3951612903225806,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 49,
+            "NextDayRise": 75,
+            "prediction": "downwardtrend"
+        },
+        "RSI": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 15,
+            "FallRate": 0.0,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 0,
+            "NextDayRise": 15,
+            "prediction": "neutral"
+        },
+        "SAR": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 124,
+            "FallRate": 0.13709677419354838,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 17,
+            "NextDayRise": 107,
+            "prediction": "Buysignal"
+        },
+        "Tickername": "PAG LN Equity",
+        "VR": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 124,
+            "FallRate": 0.532258064516129,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 66,
+            "NextDayRise": 58,
+            "prediction": "sellsignal"
+        },
+        "WMSR": {
+            "AVG_Change": 0.3902373783189176,
+            "Count": 42,
+            "FallRate": 0.2619047619047619,
+            "MAX_Decline": -6.219803409785085,
+            "MAX_Increase": 10.817060137957833,
+            "NextDayFall": 11,
+            "NextDayRise": 31,
+            "prediction": "neutral"
+        }
+    }
+}
