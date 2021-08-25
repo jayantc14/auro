@@ -80,56 +80,56 @@ class TechnicalAnalysis():
         return data_ta
     
     def encode_technical_indicators(self, data):
-        data['RSI'] = 0.0
+        data['RSI_enc'] = 0.0
         length = len(data)
         for epoch in data.index: #range(length):
             if data.loc[epoch,'rsi']> 70 :
-                data.loc[epoch,'RSI'] = 3
+                data.loc[epoch,'RSI_enc'] = 3
             elif data.loc[epoch,'rsi']< 30:
-                data.loc[epoch,'RSI'] = 1
+                data.loc[epoch,'RSI_enc'] = 1
             else:
-                data.loc[epoch,'RSI'] = 2
+                data.loc[epoch,'RSI_enc'] = 2
         
-        data['MACD'] = 0.0
+        data['MACD_enc'] = 0.0
         length = len(data)
         for epoch in data.index: #range(length):
             if data.loc[epoch,'macd']> data.loc[epoch,'macdsignal'] :
-                data.loc[epoch,'MACD'] = 3
+                data.loc[epoch,'MACD_enc'] = 3
             elif data.loc[epoch,'macd']< data.loc[epoch,'macdsignal']:
-                data.loc[epoch,'MACD'] = 1
+                data.loc[epoch,'MACD_enc'] = 1
             else:
-                data.loc[epoch,'MACD'] = 2
+                data.loc[epoch,'MACD_enc'] = 2
         
-        data['BOLL'] = 0.0
+        data['BOLL_enc'] = 0.0
         length = len(data)
         for epoch in data.index: #range(length):
             if data.loc[epoch,'Close']> data.loc[epoch,'up_band'] :
-                data.loc[epoch,'BOLL'] = 3
+                data.loc[epoch,'BOLL_enc'] = 3
             elif data.loc[epoch,'Close']< data.loc[epoch,'low_band']:
-                data.loc[epoch,'BOLL'] = 1
+                data.loc[epoch,'BOLL_enc'] = 1
             else:
-                data.loc[epoch,'BOLL'] = 2
+                data.loc[epoch,'BOLL_enc'] = 2
         
-        data['KC'] = 0.0
+        data['KC_enc'] = 0.0
         length = len(data)
         for epoch in data.index: #range(length):
             if data.loc[epoch,'Close']>data.loc[epoch,'KCUe_20_2'] :
-                data.loc[epoch,'KC'] = 3
+                data.loc[epoch,'KC_enc'] = 3
             elif data.loc[epoch,'Close']<data.loc[epoch,'KCLe_20_2'] :
-                data.loc[epoch,'KC'] = 1
+                data.loc[epoch,'KC_enc'] = 1
             else:
-                data.loc[epoch,'KC'] = 2
+                data.loc[epoch,'KC_enc'] = 2
         
-        data['KDJ'] = 0.0
+        data['KDJ_enc'] = 0.0
         length = len(data)
         for epoch in data.index: #range(length):
             
             if 80 <data.loc[epoch,"K_9_3"] :
-                data.loc[epoch,'KDJ'] = 3
+                data.loc[epoch,'KDJ_enc'] = 3
             elif 20 >data.loc[epoch,"D_9_3"] :
-                data.loc[epoch,'KDJ'] = 1
+                data.loc[epoch,'KDJ_enc'] = 1
             else:
-                data.loc[epoch,'KDJ'] = 2
+                data.loc[epoch,'KDJ_enc'] = 2
         
         return data
     
@@ -145,7 +145,7 @@ class TechnicalAnalysis():
         X = data.iloc[:,5:25]    
         y = np.where(data['Close'].shift(-1) > data['Close'],1,0)
         data['Target'] = pd.Series(y)    
-        X.drop(['BIAS','KDJ','BOLL','PSY','AR','ROC'],axis = 1,inplace = True)  #0.5
+        X.drop(['BIAS','KDJ_enc','BOLL_enc','PSY','AR','ROC'],axis = 1,inplace = True)  #0.5
         return X, y
     
     def fit_train_model(self, X, y):
