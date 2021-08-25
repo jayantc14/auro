@@ -48,41 +48,41 @@ class TechnicalAnalysis():
         return self.data_raw
     
     def compute_technical_indicators(self, data):    
-        data = data.copy()
-        data['CCI'] = ta.CCI(data['High'],data['Low'], data['Close'],timeperiod = 14)
-        data['MA'] = ta.SMA(data['Close'],20)
-        data['EMA'] = ta.EMA(data['Close'], timeperiod = 20)
-        data['EMA5'] = ta.EMA(data['Close'], timeperiod = 5)
-        data['EMA10'] = ta.EMA(data['Close'], timeperiod = 10)
+        data_ta = data.copy()
+        data_ta['CCI'] = ta.CCI(data_ta['High'],data_ta['Low'], data_ta['Close'],timeperiod = 14)
+        data_ta['MA'] = ta.SMA(data_ta['Close'],20)
+        data_ta['EMA'] = ta.EMA(data_ta['Close'], timeperiod = 20)
+        data_ta['EMA5'] = ta.EMA(data_ta['Close'], timeperiod = 5)
+        data_ta['EMA10'] = ta.EMA(data_ta['Close'], timeperiod = 10)
     
-        data['up_band'],data['mid_band'],data['low_band'] = ta.BBANDS(data['Close'], timeperiod =20)
-        data['rsi'] = ta.RSI(data['Close'],14)
-        data['BIAS'] = tal.bias(data['Close'])
-        data['PSY'] = tal.psl(data['Close'])
-        data['CMO'] = ta.CMO(data['Close'], timeperiod=20)
-        data['ROC'] = ta.ROC(data['Close'], timeperiod=20)
-        data['PPO'] = ta.PPO(data['Close'], fastperiod=12, slowperiod=26, matype=0)
-        data['APO'] = ta.APO(data['Close'], fastperiod=12, slowperiod=26, matype=0)
-        data['WMSR'] = ta.WILLR(data['High'],data['Low'], data['Close'], timeperiod=14)
-        macd, macdsignal, macdhist = ta.MACD(data['Close'])
-        data['macd'] = macd
-        data['macdsignal'] = macdsignal
-        data['AR'] = ta.AROONOSC(data['High'],data['Low'], timeperiod=14)
-        data["VR"] = tal.pvr(data['Close'],data['Volume'])
-        kc = tal.kc(data['High'],data['Low'], data['Close'])
-        data = data.join(kc)
-        k =tal.kdj(data['High'],data['Low'], data['Close'])
-        data = data.join(k)
-        data['SAR'] = ta.SAR(data['High'],data['Low'], acceleration=0, maximum=0)
+        data_ta['up_band'],data_ta['mid_band'],data_ta['low_band'] = ta.BBANDS(data_ta['Close'], timeperiod =20)
+        data_ta['rsi'] = ta.RSI(data_ta['Close'],14)
+        data_ta['BIAS'] = tal.bias(data_ta['Close'])
+        data_ta['PSY'] = tal.psl(data_ta['Close'])
+        data_ta['CMO'] = ta.CMO(data_ta['Close'], timeperiod=20)
+        data_ta['ROC'] = ta.ROC(data_ta['Close'], timeperiod=20)
+        data_ta['PPO'] = ta.PPO(data_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
+        data_ta['APO'] = ta.APO(data_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
+        data_ta['WMSR'] = ta.WILLR(data_ta['High'],data_ta['Low'], data_ta['Close'], timeperiod=14)
+        macd, macdsignal, macdhist = ta.MACD(data_ta['Close'])
+        data_ta['macd'] = macd
+        data_ta['macdsignal'] = macdsignal
+        data_ta['AR'] = ta.AROONOSC(data_ta['High'],data_ta['Low'], timeperiod=14)
+        data_ta["VR"] = tal.pvr(data_ta['Close'],data_ta['Volume'])
+        kc = tal.kc(data_ta['High'],data_ta['Low'], data_ta['Close'])
+        data_ta = data_ta.join(kc)
+        k = tal.kdj(data_ta['High'],data_ta['Low'], data_ta['Close'])
+        data_ta = data_ta.join(k)
+        data_ta['SAR'] = ta.SAR(data_ta['High'],data_ta['Low'], acceleration=0, maximum=0)
         
-        data.dropna(inplace = True)    
-        #data.reset_index(inplace= True,drop = True)
-        return data
+        data_ta.dropna(inplace = True)    
+        #data_ta.reset_index(inplace= True,drop = True)
+        return data_ta
     
     def encode_technical_indicators(self, data):
         data['RSI'] = 0.0
         length = len(data)
-        for epoch in range(length):
+        for epoch in data.index: #range(length):
             if data.loc[epoch,'rsi']> 70 :
                 data.loc[epoch,'RSI'] = 3
             elif data.loc[epoch,'rsi']< 30:
@@ -92,7 +92,7 @@ class TechnicalAnalysis():
         
         data['MACD'] = 0.0
         length = len(data)
-        for epoch in range(length):
+        for epoch in data.index: #range(length):
             if data.loc[epoch,'macd']> data.loc[epoch,'macdsignal'] :
                 data.loc[epoch,'MACD'] = 3
             elif data.loc[epoch,'macd']< data.loc[epoch,'macdsignal']:
@@ -102,7 +102,7 @@ class TechnicalAnalysis():
         
         data['BOLL'] = 0.0
         length = len(data)
-        for epoch in range(length):
+        for epoch in data.index: #range(length):
             if data.loc[epoch,'Close']> data.loc[epoch,'up_band'] :
                 data.loc[epoch,'BOLL'] = 3
             elif data.loc[epoch,'Close']< data.loc[epoch,'low_band']:
@@ -112,7 +112,7 @@ class TechnicalAnalysis():
         
         data['KC'] = 0.0
         length = len(data)
-        for epoch in range(length):
+        for epoch in data.index: #range(length):
             if data.loc[epoch,'Close']>data.loc[epoch,'KCUe_20_2'] :
                 data.loc[epoch,'KC'] = 3
             elif data.loc[epoch,'Close']<data.loc[epoch,'KCLe_20_2'] :
@@ -122,7 +122,7 @@ class TechnicalAnalysis():
         
         data['KDJ'] = 0.0
         length = len(data)
-        for epoch in range(length):
+        for epoch in data.index: #range(length):
             
             if 80 <data.loc[epoch,"K_9_3"] :
                 data.loc[epoch,'KDJ'] = 3
@@ -161,7 +161,7 @@ class TechnicalAnalysis():
         
         d = len(X)
     
-        res = X.loc[d-1,:]
+        res = X.iloc[d-1,:]
         res = res.to_frame()
         res = res.transpose()  
         result = model.predict_proba(res)
@@ -171,7 +171,8 @@ class TechnicalAnalysis():
         #label = 1 rise in price #1 is column name for prediction proba. of label 1 
         return result
     
-    def get_individual_indicator_prediction(self, data1, resultdic):
+    def get_individual_indicator_prediction(self, data, resultdic):
+        data1 = data.copy()
         data1.reset_index(inplace= True,drop = True)
         data1.dropna(inplace= True)
         t = len(data1)
@@ -227,8 +228,7 @@ class TechnicalAnalysis():
             dff.loc[t-1,"VR"] = 'neutral'
             resultdic['VR']['prediction'] = 'neutral'
         
-        
-        
+                
         resultdic['CCI'] = {}
         if dff.loc[t-1,"CCI"]>100:
             dff.loc[t-1,"CCI"] = 'overbought'
@@ -427,7 +427,7 @@ class TechnicalAnalysis():
             count_sell = 0
             if(indicator == 'SAR'):
                         
-                for epoch in range(length):
+                for epoch in df.index: #range(length):
         
                     if df.loc[epoch,"Close"]>df.loc[epoch, indicator] :
         
@@ -438,7 +438,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'KC' ):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if df.loc[epoch,"Close"]>df.loc[epoch ,'KCUe_20_2'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -447,7 +447,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'KDJ'):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 90<df.loc[epoch ,'K_9_3'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -456,7 +456,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'VR'):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 2.5<df.loc[epoch ,'VR'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -465,7 +465,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'CCI'):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 100<df.loc[epoch ,'CCI'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -474,7 +474,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'PSY'):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 70<df.loc[epoch ,'PSY'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -483,7 +483,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'WMSR'):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if -20<df.loc[epoch ,'WMSR'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -492,7 +492,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'MA'):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if -20<df.loc[epoch ,'WMSR'] :
                         count_rise = count_rise+1
                         count = count+1
@@ -502,7 +502,7 @@ class TechnicalAnalysis():
                         count = count+1
                     
             elif(indicator == "RSI"):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 70<df.loc[epoch ,"rsi"] :
                         count_rise = count_rise+1
                         count = count+1
@@ -512,7 +512,7 @@ class TechnicalAnalysis():
                         count = count+1
                 
             elif(indicator == "PPO"):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 10<df.loc[epoch ,"PPO"] :
                         count_rise = count_rise+1
                         count = count+1
@@ -522,7 +522,7 @@ class TechnicalAnalysis():
                         count = count+1
                     
             elif(indicator == "APO"):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 0<df.loc[epoch ,"APO"] :
                         count_rise = count_rise+1
                         count = count+1
@@ -532,7 +532,7 @@ class TechnicalAnalysis():
                         count = count+1
            
             elif(indicator == "AR"):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 0 <df.loc[epoch ,"AR"] :
                         count_rise = count_rise+1
                         count = count+1
@@ -542,7 +542,7 @@ class TechnicalAnalysis():
                         count = count+1
         
             elif(indicator == "ROC"):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 0<df.loc[epoch ,"ROC"] :
                         count_rise = count_rise+1
                         count = count+1
@@ -552,7 +552,7 @@ class TechnicalAnalysis():
                         count = count+1
                     
             elif(indicator == "CMO"):
-                for epoch in range(length ):   
+                for epoch in df.index: #range(length ):   
                     if 50<df.loc[epoch ,"CMO"] :
                         count_rise = count_rise+1
                         count = count+1
@@ -561,7 +561,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == "MA"):
-                for epoch in range(length ):
+                for epoch in df.index: #range(length ):
         
                     if df.loc[epoch,"Close"]>df.loc[epoch ,"MA"] :
                         count_rise = count_rise+1
@@ -570,7 +570,7 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == "BOLL"):
-                for epoch in range(length ):
+                for epoch in df.index: #range(length ):
         
                     if df.loc[epoch,"Close"]>df.loc[epoch ,"up_band"] :
                         count_rise = count_rise+1
@@ -580,7 +580,7 @@ class TechnicalAnalysis():
                         count = count+1
                     
             elif(indicator == "MACD"):
-                for epoch in range(length ):
+                for epoch in df.index: #range(length ):
         
                     if df.loc[epoch,"macd"]>df.loc[epoch ,"macdsignal"] :
                         count_rise = count_rise+1
@@ -590,7 +590,7 @@ class TechnicalAnalysis():
                         count = count+1
                         
             elif(indicator == "EMA"):
-                for epoch in range(length ):
+                for epoch in df.index: #range(length ):
                     
                         
                     if df.loc[epoch, "EMA5"]>df.loc[epoch,"EMA10"] :
