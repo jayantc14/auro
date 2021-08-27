@@ -17,6 +17,7 @@ from sklearn import metrics
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler
+from sklearn.metrics import confusion_matrix, classification_report
 
 import pandas_ta as tal
 import warnings
@@ -48,128 +49,109 @@ class TechnicalAnalysis():
         return self.data_raw
     
     def compute_technical_indicators(self, data):    
-        data_ta = data.copy()
-        data_ta['CCI'] = ta.CCI(data_ta['High'],data_ta['Low'], data_ta['Close'],timeperiod = 14)
-        data_ta['MA'] = ta.SMA(data_ta['Close'],20)
-        data_ta['EMA'] = ta.EMA(data_ta['Close'], timeperiod = 20)
-        data_ta['EMA5'] = ta.EMA(data_ta['Close'], timeperiod = 5)
-        data_ta['EMA10'] = ta.EMA(data_ta['Close'], timeperiod = 10)
+        df_ta = data.copy()
+        df_ta['CCI'] = ta.CCI(df_ta['High'],df_ta['Low'], df_ta['Close'],timeperiod = 14)
+        df_ta['MA'] = ta.SMA(df_ta['Close'],20)
+        df_ta['EMA'] = ta.EMA(df_ta['Close'], timeperiod = 20)
+        df_ta['EMA5'] = ta.EMA(df_ta['Close'], timeperiod = 5)
+        df_ta['EMA10'] = ta.EMA(df_ta['Close'], timeperiod = 10)
     
-        data_ta['up_band'],data_ta['mid_band'],data_ta['low_band'] = ta.BBANDS(data_ta['Close'], timeperiod =20)
-        data_ta['rsi'] = ta.RSI(data_ta['Close'],14)
-        data_ta['BIAS'] = tal.bias(data_ta['Close'])
-        data_ta['PSY'] = tal.psl(data_ta['Close'])
-        data_ta['CMO'] = ta.CMO(data_ta['Close'], timeperiod=20)
-        data_ta['ROC'] = ta.ROC(data_ta['Close'], timeperiod=20)
-        data_ta['PPO'] = ta.PPO(data_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
-        data_ta['APO'] = ta.APO(data_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
-        data_ta['WMSR'] = ta.WILLR(data_ta['High'],data_ta['Low'], data_ta['Close'], timeperiod=14)
-        macd, macdsignal, macdhist = ta.MACD(data_ta['Close'])
-        data_ta['macd'] = macd
-        data_ta['macdsignal'] = macdsignal
-        data_ta['AR'] = ta.AROONOSC(data_ta['High'],data_ta['Low'], timeperiod=14)
-        data_ta["VR"] = tal.pvr(data_ta['Close'],data_ta['Volume'])
-        kc = tal.kc(data_ta['High'],data_ta['Low'], data_ta['Close'])
-        data_ta = data_ta.join(kc)
-        k = tal.kdj(data_ta['High'],data_ta['Low'], data_ta['Close'])
-        data_ta = data_ta.join(k)
-        data_ta['SAR'] = ta.SAR(data_ta['High'],data_ta['Low'], acceleration=0, maximum=0)
+        df_ta['up_band'],df_ta['mid_band'],df_ta['low_band'] = ta.BBANDS(df_ta['Close'], timeperiod =20)
+        df_ta['rsi'] = ta.RSI(df_ta['Close'],14)
+        df_ta['BIAS'] = tal.bias(df_ta['Close'])
+        df_ta['PSY'] = tal.psl(df_ta['Close'])
+        df_ta['CMO'] = ta.CMO(df_ta['Close'], timeperiod=20)
+        df_ta['ROC'] = ta.ROC(df_ta['Close'], timeperiod=20)
+        df_ta['PPO'] = ta.PPO(df_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
+        df_ta['APO'] = ta.APO(df_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
+        df_ta['WMSR'] = ta.WILLR(df_ta['High'],df_ta['Low'], df_ta['Close'], timeperiod=14)
+        macd, macdsignal, macdhist = ta.MACD(df_ta['Close'])
+        df_ta['macd'] = macd
+        df_ta['macdsignal'] = macdsignal
+        df_ta['AR'] = ta.AROONOSC(df_ta['High'],df_ta['Low'], timeperiod=14)
+        df_ta["VR"] = tal.pvr(df_ta['Close'],df_ta['Volume'])
+        kc = tal.kc(df_ta['High'],df_ta['Low'], df_ta['Close'])
+        df_ta = df_ta.join(kc)
+        k = tal.kdj(df_ta['High'],df_ta['Low'], df_ta['Close'])
+        df_ta = df_ta.join(k)
+        df_ta['SAR'] = ta.SAR(df_ta['High'],df_ta['Low'], acceleration=0, maximum=0)
         
-        data_ta.dropna(inplace = True)    
-        #data_ta.reset_index(inplace= True,drop = True)
-        return data_ta
+        df_ta.dropna(inplace = True)    
+        #df_ta.reset_index(inplace= True,drop = True)
+        return df_ta
     
     def encode_technical_indicators(self, data):
-        data['RSI_enc'] = 0.0
-        length = len(data)
-        for epoch in data.index: #range(length):
-            if data.loc[epoch,'rsi']> 70 :
-                data.loc[epoch,'RSI_enc'] = 3
-            elif data.loc[epoch,'rsi']< 30:
-                data.loc[epoch,'RSI_enc'] = 1
-            else:
-                data.loc[epoch,'RSI_enc'] = 2
+        df_enc = data.copy()
+        df_enc[['RSI_enc', 'KDJ_enc']] = np.nan
         
-        data['MACD_enc'] = 0.0
-        length = len(data)
-        for epoch in data.index: #range(length):
-            if data.loc[epoch,'macd']> data.loc[epoch,'macdsignal'] :
-                data.loc[epoch,'MACD_enc'] = 3
-            elif data.loc[epoch,'macd']< data.loc[epoch,'macdsignal']:
-                data.loc[epoch,'MACD_enc'] = 1
-            else:
-                data.loc[epoch,'MACD_enc'] = 2
+        df_enc['RSI_enc'] = pd.cut(df_enc['rsi'], bins=[0, 15, 30, 70, 85, 100], labels=[1,2,3,4,5])
+        df_enc['KDJ_enc'] = pd.cut(df_enc['K_9_3'], bins=[0, 20, 80, 100], labels=[1,2,3])
         
-        data['BOLL_enc'] = 0.0
-        length = len(data)
-        for epoch in data.index: #range(length):
-            if data.loc[epoch,'Close']> data.loc[epoch,'up_band'] :
-                data.loc[epoch,'BOLL_enc'] = 3
-            elif data.loc[epoch,'Close']< data.loc[epoch,'low_band']:
-                data.loc[epoch,'BOLL_enc'] = 1
-            else:
-                data.loc[epoch,'BOLL_enc'] = 2
+        cond_list = [df_enc['up_band'] < df_enc['Close'] , (df_enc['low_band'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['up_band'] ),  df_enc['Close'] < df_enc['low_band']]
+        df_enc['BOLL_enc'] = np.select(cond_list, [3,2,1], default=np.nan)                
+
+        cond_list = [df_enc['KCUe_20_2'] < df_enc['Close'] , (df_enc['KCLe_20_2'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['KCUe_20_2'] ),  df_enc['Close'] < df_enc['KCLe_20_2']]
+        df_enc['KC_enc'] = np.select(cond_list, [3,2,1], default=np.nan)
+
+        cond_list = [df_enc['macdsignal'] < df_enc['macd'] , df_enc['macd'] < df_enc['macdsignal']]
+        df_enc['MACD_enc'] = np.select(cond_list, [3,1], default=np.nan)
+       
+        return df_enc
+
+
+    def preprocess_data(self, data):
+        df_proc = data.copy()
+        df_proc['Close_next1day'] = df_proc['Close'].shift(-1)
+        df_proc['ret'] = df_proc['Close'].pct_change(periods=1)
+        df_proc['ret_next1day'] = df_proc['ret'].shift(-1)
+        df_proc['ret_next1day_enc'] = np.select([ df_proc['ret_next1day'] >= 0, df_proc['ret_next1day'] < 0 ], 
+                                               [1, 0], default=np.nan)
+        return df_proc
         
-        data['KC_enc'] = 0.0
-        length = len(data)
-        for epoch in data.index: #range(length):
-            if data.loc[epoch,'Close']>data.loc[epoch,'KCUe_20_2'] :
-                data.loc[epoch,'KC_enc'] = 3
-            elif data.loc[epoch,'Close']<data.loc[epoch,'KCLe_20_2'] :
-                data.loc[epoch,'KC_enc'] = 1
-            else:
-                data.loc[epoch,'KC_enc'] = 2
         
-        data['KDJ_enc'] = 0.0
-        length = len(data)
-        for epoch in data.index: #range(length):
-            
-            if 80 <data.loc[epoch,"K_9_3"] :
-                data.loc[epoch,'KDJ_enc'] = 3
-            elif 20 >data.loc[epoch,"D_9_3"] :
-                data.loc[epoch,'KDJ_enc'] = 1
-            else:
-                data.loc[epoch,'KDJ_enc'] = 2
-        
-        return data
-    
     def get_feature_response_variables_for_model(self, data_input):
         data = data_input.copy()
-        
+
         data.drop(['rsi'],axis=1,inplace = True)   
         data.drop(['macd','macdsignal'],axis=1,inplace = True) 
         data.drop(['up_band','low_band','mid_band'],axis=1,inplace = True) 
         data.drop(["KCUe_20_2","KCLe_20_2","KCBe_20_2"],axis = 1,inplace = True )
         data.drop(["K_9_3","D_9_3","J_9_3"],axis = 1,inplace = True )
     
-        X = data.iloc[:,5:25]    
-        y = np.where(data['Close'].shift(-1) > data['Close'],1,0)
-        data['Target'] = pd.Series(y)    
-        X.drop(['BIAS','KDJ_enc','BOLL_enc','PSY','AR','ROC'],axis = 1,inplace = True)  #0.5
+        y = data['ret_next1day_enc']
+        feature_list = ['MA', 'EMA', 'EMA5', 'EMA10', 'CMO', 'PPO', 'APO', 'WMSR', 'VR', 'SAR', 'RSI_enc', 'KC_enc', 'MACD_enc']
+        X = data[feature_list]
         return X, y
     
     def fit_train_model(self, X, y):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 4)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size = 0.3, random_state = 4)
         
         # scaling the features
         scaler = RobustScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+        self.X_train_scaled = scaler.fit_transform(self.X_train)
+        self.X_test_scaled = scaler.transform(self.X_test)
         
-        model = LogisticRegression()
-        model.fit(X_train_scaled,y_train)
-        
-        d = len(X)
-    
-        res = X.iloc[d-1,:]
+        self.model = LogisticRegression()
+        self.model.fit(self.X_train_scaled, self.y_train)
+            
+        res = X.iloc[len(X)-1,:]
         res = res.to_frame()
         res = res.transpose()  
-        result = model.predict_proba(res)
+        result = self.model.predict_proba(res)
         
         result  = pd.DataFrame(result)
         result = result.loc[0,1] 
         #label = 1 rise in price #1 is column name for prediction proba. of label 1 
+        
         return result
+
+    def model_summary(self, y, y_pred):
+        model = self.model
+        cm_df = pd.DataFrame(confusion_matrix(y, y_pred).T, index=model.classes_, columns=model.classes_)
+        cm_df.index.name = 'Predicted'
+        cm_df.columns.name = 'True'
+        print(cm_df)
+        print(classification_report(y, y_pred))
     
     def get_individual_indicator_prediction(self, data, resultdic):
         data1 = data.copy()
@@ -390,35 +372,35 @@ class TechnicalAnalysis():
     
     def get_backtesting_result(self, data, resultdic):
         indicators ={  
-        "MA" : 20,
-        "EMA" : 20,
-        "BOLL" :20,
-        "RSI":14,
-        "MACD":9, 
-        "CCI":14,     
-        #BIAS
-        #PER
-        #MAVOL
-        "PSY": 0,
-        "WMSR": 20,    
-        "CMO": 20,
-        "ROC":20,
-        "PPO":26,
-        "APO":26,
-        "AR" : 14,
-        "KDJ" :0,
-        "KC":0,
-        "VR":0,
-        "SAR":0        
-        }
+                    "MA" : 20,
+                    "EMA" : 20,
+                    "BOLL" :20,
+                    "RSI":14,
+                    "MACD":9, 
+                    "CCI":14,     
+                    #BIAS
+                    #PER
+                    #MAVOL
+                    "PSY": 0,
+                    "WMSR": 20,    
+                    "CMO": 20,
+                    "ROC":20,
+                    "PPO":26,
+                    "APO":26,
+                    "AR" : 14,
+                    "KDJ" :0,
+                    "KC":0,
+                    "VR":0,
+                    "SAR":0        
+                    }
     
         df = data
          
         df['avg'] = ((df['Close'].shift(-1)-df['Close'])/df['Close'])*100
-        maxval = df['avg'].max()
+        max_increase = df['avg'].max()
         
-        minval = df['avg'].min()
-        avgchange = df['avg'].mean()
+        max_decline = df['avg'].min()
+        avg_change = df['avg'].mean()
         
         for indicator, time in indicators.items():
             length = len(df)
@@ -502,14 +484,19 @@ class TechnicalAnalysis():
                         count = count+1
                     
             elif(indicator == "RSI"):
-                for epoch in df.index: #range(length ):   
-                    if 70<df.loc[epoch ,"rsi"] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 30>df.loc[epoch, "rsi"] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['RSI_enc'].iloc[-1]
+                df_current_state = df[df['RSI_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
+                count = df_current_state['ret_next1day'].count()
+                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
+                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
+                fall_rate = count_sell/count                 
+                avg_change = nextperiod_return_s.mean()
+                max_increase = nextperiod_return_s.max()
+                max_decline = nextperiod_return_s.min()
+                                    
+
                 
             elif(indicator == "PPO"):
                 for epoch in df.index: #range(length ):   
@@ -610,9 +597,9 @@ class TechnicalAnalysis():
             else:
                  resultdic[indicator]['FallRate'] = float (0)
                  
-            resultdic[indicator]['AVG_Change']= avgchange
-            resultdic[indicator]['MAX_Increase']= maxval
-            resultdic[indicator]['MAX_Decline']= minval
+            resultdic[indicator]['AVG_Change']= avg_change
+            resultdic[indicator]['MAX_Increase']= max_increase
+            resultdic[indicator]['MAX_Decline']= max_decline
     
         return resultdic  
     
@@ -621,15 +608,16 @@ class TechnicalAnalysis():
         
         self.data_ta = self.compute_technical_indicators(self.data_raw)
         self.data_ta_encoded = self.encode_technical_indicators(self.data_ta)
-        self.X, self.y  = self.get_feature_response_variables_for_model(self.data_ta_encoded)
+        self.data_procesed = self.preprocess_data(self.data_ta_encoded)
+        self.X, self.y  = self.get_feature_response_variables_for_model(self.data_procesed)
         self.result = self.fit_train_model(self.X, self.y)
     
         self.resultdic = {}
         self.resultdic['Tickername'] = self.s
         self.resultdic['Auroscore'] = self.result
     
-        self.resultdic = self.get_individual_indicator_prediction(self.data_ta, self.resultdic)
-        self.resultdic = self.get_backtesting_result(self.data_ta, self.resultdic)      
+        self.resultdic = self.get_individual_indicator_prediction(self.data_procesed, self.resultdic)
+        self.resultdic = self.get_backtesting_result(self.data_procesed, self.resultdic)      
     
         return self.resultdic 
 
@@ -644,4 +632,14 @@ if __name__ == "__main__":
     output_fpath = os.path.join( os.getcwd(), 'output', "result_ta_"+str(dt.date.today()) )
     with open(output_fpath, 'w') as f:
         pprint(result_dict, stream=f) #print(result_dict, file=f)
-        
+
+    for k, v in result_dict.items(): 
+        print ("############## /n {} {}".format(k,v))
+        if type(v) is dict:
+            for i, j in v.items(): 
+                print ("############## /n {} {}".format(i,j))
+                print ("type: {}:\n".format(type(j)))
+            
+    # prediction code on the test dataset
+    #self.y_pred = self.model.predict(self.X_test_scaled)
+    #self.model_summary(self.y_test, self.y_pred)
