@@ -85,6 +85,9 @@ class TechnicalAnalysis():
         df_enc[['RSI_enc', 'KDJ_enc']] = np.nan
         
         df_enc['RSI_enc'] = pd.cut(df_enc['rsi'], bins=[0, 15, 30, 70, 85, 100], labels=[1,2,3,4,5])
+        df_enc['WMSR_enc'] = pd.cut(df_enc['WMSR'], bins=[-100, -90, -80, -20, -10, 0], labels=[1,2,3,4,5])
+        df_enc['CCI_enc'] = pd.cut(df_enc['CCI'], bins=[-500, -200, -100, 0, 100, 200, 500], labels=[1,2,3,4,5,6])
+
         df_enc['KDJ_enc'] = pd.cut(df_enc['K_9_3'], bins=[0, 20, 80, 100], labels=[1,2,3])
         
         cond_list = [df_enc['up_band'] < df_enc['Close'] , (df_enc['low_band'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['up_band'] ),  df_enc['Close'] < df_enc['low_band']]
@@ -375,21 +378,21 @@ class TechnicalAnalysis():
                     "MA" : 20,
                     "EMA" : 20,
                     "BOLL" :20,
-                    "RSI":14,
+                    "RSI":14,  # Done
                     "MACD":9, 
-                    "CCI":14,     
+                    "CCI":14,  # Done   
                     #BIAS
                     #PER
                     #MAVOL
                     "PSY": 0,
-                    "WMSR": 20,    
+                    "WMSR": 20,  # Done
                     "CMO": 20,
                     "ROC":20,
                     "PPO":26,
                     "APO":26,
                     "AR" : 14,
                     "KDJ" :0,
-                    "KC":0,
+                    "KC":0, 
                     "VR":0,
                     "SAR":0        
                     }
@@ -420,14 +423,18 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'KC' ):
-                for epoch in df.index: #range(length ):   
-                    if df.loc[epoch,"Close"]>df.loc[epoch ,'KCUe_20_2'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif df.loc[epoch,"Close"]<df.loc[epoch,'KCLe_20_2'] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['KC_enc'].iloc[-1]
+                df_current_state = df[df['KC_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
+                count = df_current_state['ret_next1day'].count()
+                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
+                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
+                fall_rate = count_sell/count                 
+                avg_change = nextperiod_return_s.mean()
+                max_increase = nextperiod_return_s.max()
+                max_decline = nextperiod_return_s.min()
+
             elif(indicator == 'KDJ'):
                 for epoch in df.index: #range(length ):   
                     if 90<df.loc[epoch ,'K_9_3'] :
@@ -446,15 +453,21 @@ class TechnicalAnalysis():
                     elif 2.5 >df.loc[epoch, 'VR'] :
                         count_sell = count_sell+1
                         count = count+1
+
             elif(indicator == 'CCI'):
-                for epoch in df.index: #range(length ):   
-                    if 100<df.loc[epoch ,'CCI'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif -100 >df.loc[epoch, 'CCI'] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['CCI_enc'].iloc[-1]
+                df_current_state = df[df['CCI_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
+                count = df_current_state['ret_next1day'].count()
+                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
+                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
+                fall_rate = count_sell/count                 
+                avg_change = nextperiod_return_s.mean()
+                max_increase = nextperiod_return_s.max()
+                max_decline = nextperiod_return_s.min()
+
+
             elif(indicator == 'PSY'):
                 for epoch in df.index: #range(length ):   
                     if 70<df.loc[epoch ,'PSY'] :
@@ -465,14 +478,18 @@ class TechnicalAnalysis():
                         count_sell = count_sell+1
                         count = count+1
             elif(indicator == 'WMSR'):
-                for epoch in df.index: #range(length ):   
-                    if -20<df.loc[epoch ,'WMSR'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif -80>df.loc[epoch, 'WMSR'] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['WMSR_enc'].iloc[-1]
+                df_current_state = df[df['WMSR_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
+                count = df_current_state['ret_next1day'].count()
+                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
+                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
+                fall_rate = count_sell/count                 
+                avg_change = nextperiod_return_s.mean()
+                max_increase = nextperiod_return_s.max()
+                max_decline = nextperiod_return_s.min()
+
             elif(indicator == 'MA'):
                 for epoch in df.index: #range(length ):   
                     if -20<df.loc[epoch ,'WMSR'] :
@@ -496,7 +513,6 @@ class TechnicalAnalysis():
                 max_increase = nextperiod_return_s.max()
                 max_decline = nextperiod_return_s.min()
                                     
-
                 
             elif(indicator == "PPO"):
                 for epoch in df.index: #range(length ):   
@@ -608,16 +624,16 @@ class TechnicalAnalysis():
         
         self.data_ta = self.compute_technical_indicators(self.data_raw)
         self.data_ta_encoded = self.encode_technical_indicators(self.data_ta)
-        self.data_procesed = self.preprocess_data(self.data_ta_encoded)
-        self.X, self.y  = self.get_feature_response_variables_for_model(self.data_procesed)
+        self.data_processed = self.preprocess_data(self.data_ta_encoded)
+        self.X, self.y  = self.get_feature_response_variables_for_model(self.data_processed)
         self.result = self.fit_train_model(self.X, self.y)
     
         self.resultdic = {}
         self.resultdic['Tickername'] = self.s
         self.resultdic['Auroscore'] = self.result
     
-        self.resultdic = self.get_individual_indicator_prediction(self.data_procesed, self.resultdic)
-        self.resultdic = self.get_backtesting_result(self.data_procesed, self.resultdic)      
+        self.resultdic = self.get_individual_indicator_prediction(self.data_processed, self.resultdic)
+        self.resultdic = self.get_backtesting_result(self.data_processed, self.resultdic)      
     
         return self.resultdic 
 
@@ -632,13 +648,6 @@ if __name__ == "__main__":
     output_fpath = os.path.join( os.getcwd(), 'output', "result_ta_"+str(dt.date.today()) )
     with open(output_fpath, 'w') as f:
         pprint(result_dict, stream=f) #print(result_dict, file=f)
-
-    for k, v in result_dict.items(): 
-        print ("############## /n {} {}".format(k,v))
-        if type(v) is dict:
-            for i, j in v.items(): 
-                print ("############## /n {} {}".format(i,j))
-                print ("type: {}:\n".format(type(j)))
             
     # prediction code on the test dataset
     #self.y_pred = self.model.predict(self.X_test_scaled)
