@@ -158,218 +158,107 @@ class TechnicalAnalysis():
     
     def get_individual_indicator_prediction(self, data, resultdic):
         data1 = data.copy()
-        data1.reset_index(inplace= True,drop = True)
-        data1.dropna(inplace= True)
-        t = len(data1)
-        df = data1.loc[t-1,:]
-        dff = df.to_frame()
-        dff = dff.transpose()
-        
-        dff['Prediction'] = "NULL"
-        resultdic['SAR'] = {}
-               
-        if dff.loc[t-1,"Close"]>dff.loc[t-1, 'SAR'] :
-            dff.loc[t-1, 'SAR'] = 'Buysignal'
-            resultdic['SAR']['prediction'] = 'Buysignal'
-        elif dff.loc[t-1,"Close"]<dff.loc[t-1, 'SAR'] :
-            dff.loc[t-1, 'SAR'] = 'sellsignal'
-            resultdic['SAR']['prediction'] = 'sellsignal'
-        else:
-            dff.loc[t-1, 'SAR'] = 'neutral'
-            resultdic['SAR']['prediction'] = 'neutral'
-        
+        df = data1.iloc[-1,:]
+
+
+        resultdic['SAR'] = {}               
+        cond_list = [df['Close'] >= df['SAR'] , df['Close'] < df['SAR']]
+        df['SAR_pred'] = np.select(cond_list, ['Buysignal','sellsignal'], default='')
+        resultdic['SAR']['prediction'] = df['SAR_pred']
+
         resultdic['KC'] = {}
-        if dff.loc[t-1,"Close"]>dff.loc[t-1 ,'KCUe_20_2'] :
-            dff.loc[t-1,'KC'] = 'Buysignal'
-            resultdic['KC']['prediction'] = 'Buysignal'
-        elif dff.loc[t-1,"Close"]<dff.loc[t-1,'KCLe_20_2'] :
-            dff.loc[t-1,'KC'] = 'sellsignal'
-            resultdic['KC']['prediction'] = 'sellsignal'
-        else:
-            dff.loc[t-1,'KC'] = 'neutral'
-            resultdic['KC']['prediction'] = 'neutral'
-        dff.drop(["KCLe_20_2","KCBe_20_2","KCUe_20_2"],axis = 1,inplace = True )
+        cond_list = [df['KCUe_20_2'] < df['Close'] , (df['KCLe_20_2'] <= df['Close'] ) & ( df['Close'] <= df['KCUe_20_2'] ),  df['Close'] < df['KCLe_20_2']]
+        df['KC_pred'] = np.select(cond_list, ['Buysignal','neutral', 'sellsignal'], default='')
+        resultdic['KC']['prediction'] = df['KC_pred']
         
         resultdic['KDJ'] = {}
-        if 20 >dff.loc[t-1, 'D_9_3'] :
-            dff.loc[t-1,'KDJ'] = 'oversold'
-            resultdic['KDJ']['prediction'] = 'oversold'
-        elif 80<dff.loc[t-1, 'K_9_3'] :
-            dff.loc[t-1,'KDJ'] = 'overbought'
-            resultdic['KDJ']['prediction'] = 'overbought'
-        else:
-            dff.loc[t-1,'KDJ'] = 'neutral'
-            resultdic['KDJ']['prediction'] = 'neutral'
-        dff.drop(['K_9_3','D_9_3','J_9_3'],axis = 1,inplace = True )
-        
+        cond_list = [ 80 < df['K_9_3'], 20 > df['D_9_3']]
+        df['KDJ_pred'] = np.select(cond_list, ['overbought','oversold'], default='neutral')
+        resultdic['KDJ']['prediction'] = df['KDJ_pred']
+
+
         resultdic['VR'] = {}
-        if dff.loc[t-1,"VR"]>2.5:
-            dff.loc[t-1,"VR"] = 'sellsignal'
-            resultdic['VR']['prediction'] = 'sellsignal'
-        elif dff.loc[t-1,"VR"]<2.5:
-            dff.loc[t-1,"VR"] = 'Buysignal'
-            resultdic['VR']['prediction'] = 'Buysignal'
-        else:
-            dff.loc[t-1,"VR"] = 'neutral'
-            resultdic['VR']['prediction'] = 'neutral'
+        cond_list = [ df['VR'] >= 2.5 , df['VR'] < 2.5 ]
+        df['VR_pred'] = np.select(cond_list, ['sellsignal','Buysignal'], default='')
+        resultdic['VR']['prediction'] = df['VR_pred']
         
                 
         resultdic['CCI'] = {}
-        if dff.loc[t-1,"CCI"]>100:
-            dff.loc[t-1,"CCI"] = 'overbought'
-            resultdic['CCI']['prediction'] = 'overbought'
-        elif dff.loc[t-1,"CCI"]<-100:
-            dff.loc[t-1,"CCI"] = 'oversold'
-            resultdic['CCI']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1,"CCI"] = 'neutral'
-            resultdic['CCI']['prediction'] = 'neutral'
+        cond_list = [100 < df['CCI'] , ( -100 <= df['CCI'] ) & ( df['CCI'] <= 100 ),  df['CCI'] < -100 ]
+        df['CCI_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        resultdic['CCI']['prediction'] = df['CCI_pred']
+
         
         resultdic['PSY'] = {}
-        if dff.loc[t-1,"PSY"]>70:
-            dff.loc[t-1,"PSY"] = 'overbought'
-            resultdic['PSY']['prediction'] = 'overbought'
-        elif dff.loc[t-1,"PSY"]<30:
-            dff.loc[t-1,"PSY"] = 'oversold'
-            resultdic['PSY']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1,"PSY"] = 'neutral'
-            resultdic['PSY']['prediction'] = 'neutral'
+        cond_list = [ 70 < df['PSY'] , ( 30 <= df['PSY'] ) & ( df['PSY'] <= 70 ),  df['PSY'] < 30 ]
+        df['PSY_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        resultdic['PSY']['prediction'] = df['PSY_pred']
+
+
         resultdic['WMSR'] = {}
-        if dff.loc[t-1 , "WMSR"]>-20:
-             dff.loc[t-1 , "WMSR"] = 'overbought'
-             resultdic['WMSR']['prediction'] = 'overbought'
-        elif dff.loc[t-1 , "WMSR"]<-80:
-             dff.loc[t-1 , "WMSR"] = 'oversold'
-             resultdic['WMSR']['prediction'] = 'oversold'
-        else:
-             dff.loc[t-1 , "WMSR"] = 'neutral'
-             resultdic['WMSR']['prediction'] = 'neutral'
-        
-        
+        cond_list = [ -20 < df['WMSR'] , ( -80 <= df['WMSR'] ) & ( df['WMSR'] <= -20 ),  df['WMSR'] < -80 ]
+        df['WMSR_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        resultdic['WMSR']['prediction'] = df['WMSR_pred']
+
+        # TODOs: Correct the logic of Moving average crossover
         resultdic['MA'] = {}
-        if dff.loc[t-1,"Close"]>dff.loc[t-1 ,"MA"] :
-            dff.loc[t-1 ,"MA"] = 'Buysignal'
-            resultdic['MA']['prediction'] = 'Buysignal'
-        elif dff.loc[t-1,"Close"]<dff.loc[t-1 ,"MA"] :
-            dff.loc[t-1 ,"MA"] = 'sellsignal'
-            resultdic['MA']['prediction'] = 'sellsignal'
-        else:
-            dff.loc[t-1 ,"MA"] = 'neutral'
-            resultdic['MA']['prediction'] = 'neutral'
-        
+        cond_list = [ df['Close'] >= df['MA'], df['Close'] < df['MA'] ]
+        df['MA_pred'] = np.select(cond_list, ['Buysignal','sellsignal'], default='')
+        resultdic['MA']['prediction'] = df['MA_pred']
+
         resultdic['BOLL'] = {}
-        if dff.loc[t-1,"Close"]>dff.loc[t-1,"up_band"] :
-            dff.loc[t-1,"BOLL"] = 'overbought'
-            resultdic['BOLL']['prediction'] = 'overbought'
-        elif dff.loc[t-1,"Close"]<dff.loc[t-1,"low_band"] :
-            dff.loc[t-1,"BOLL"] = 'oversold'
-            resultdic['BOLL']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1,"BOLL"] = 'neutral'
-            resultdic['BOLL']['prediction'] = 'neutral'
-        dff.drop(["up_band","low_band","mid_band"],axis=1,inplace = True)
-        
-        
-        # In[3635]:
-        
+        cond_list = [ df['up_band'] < df['Close'] , ( df['low_band'] <= df['Close'] ) & ( df['Close'] <= df['up_band'] ),  df['Close'] < df['low_band'] ]
+        df['BOLL_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        resultdic['BOLL']['prediction'] = df['BOLL_pred']
+
+
         resultdic['RSI'] = {}
-        if dff.loc[t-1 ,"rsi"]>70:
-            dff.loc[t-1 ,"rsi"] = 'overbought'
-            resultdic['RSI']['prediction'] = 'overbought'
-        elif dff.loc[t-1 ,"rsi"]<30:
-            dff.loc[t-1 ,"rsi"] = 'oversold'
-            resultdic['RSI']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1 ,"rsi"] = 'neutral'
-            resultdic['RSI']['prediction'] = 'neutral'
+        cond_list = [ 70 < df['rsi'] , ( 30 <= df['rsi'] ) & ( df['rsi'] <= 70 ),  df['rsi'] < 30 ]
+        df['RSI_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        resultdic['RSI']['prediction'] = df['RSI_pred']
         
         
         resultdic['PPO'] = {}
-        if dff.loc[t-1,"PPO"]>10:
-            dff.loc[t-1,"PPO"] = 'overbought'
-            resultdic['PPO']['prediction'] = 'overbought'
-        elif dff.loc[t-1,"PPO"]<-10:
-            dff.loc[t-1,"PPO"] = 'oversold'
-            resultdic['PPO']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1,"PPO"] = 'neutral'
-            resultdic['PPO']['prediction'] = 'neutral'
-        
+        cond_list = [ 10 < df['PPO'] , ( -10 <= df['PPO'] ) & ( df['PPO'] <= 10 ),  df['PPO'] < -10 ]
+        df['PPO_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        resultdic['PPO']['prediction'] = df['PPO_pred']
+
         
         resultdic['APO'] = {}
-        if dff.loc[t-1,"APO"]>0:
-            dff.loc[t-1,"APO"] = 'upwardtrend'
-            resultdic['APO']['prediction'] = 'upwardtrend'
-            
-        elif dff.loc[t-1,"APO"]<0:
-            dff.loc[t-1,"APO"] = 'downwardtrend'
-            resultdic['APO']['prediction'] = 'downwardtrend'
-        else:
-            dff.loc["APO","Prediction"] = 'neutral'
-            resultdic['APO']['prediction'] = 'neutral'
+        cond_list = [ df['APO'] >= 0, df['APO'] < 0 ]
+        df['APO_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        resultdic['APO']['prediction'] = df['APO_pred']
+
+
         resultdic['AR'] = {}
-        if dff.loc[t-1,"AR"]>0:
-            dff.loc[t-1,"AR"] = 'upwardtrend'
-            resultdic['AR']['prediction'] = 'upwardtrend'
-        elif dff.loc[t-1,"AR"]<0:
-            dff.loc[t-1,"AR"] = 'downwardtrend'
-            resultdic['AR']['prediction'] = 'downwardtrend'
-        else:
-            dff.loc[t-1,"AR"] = 'neutral'
-            resultdic['AR']['prediction'] = 'neutral'
-            
+        cond_list = [ df['AR'] >= 0, df['AR'] < 0 ]
+        df['AR_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        resultdic['AR']['prediction'] = df['AR_pred']
+
         
         resultdic['ROC'] = {}
-        if dff.loc[t-1,"ROC"]>0:
-            dff.loc[t-1,"ROC"] = 'upwardtrend'
-            resultdic['ROC']['prediction'] = 'upwardtrend'
-        elif dff.loc[t-1,"ROC"]<0:
-            dff.loc[t-1,"ROC"] = 'downwardtrend'
-            resultdic['ROC']['prediction'] = 'downwardtrend'
-        else:
-            dff.loc[t-1,"ROC"] = 'neutral'
-            resultdic['ROC']['prediction'] = 'neutral'
+        cond_list = [ df['ROC'] >= 0, df['ROC'] < 0 ]
+        df['ROC_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        resultdic['ROC']['prediction'] = df['ROC_pred']
+
         
         resultdic['CMO'] = {}
-        if dff.loc[t-1,"CMO"]>50:
-            dff.loc[t-1,"CMO"] = 'upwardtrend'
-            resultdic['CMO']['prediction'] = 'upwardtrend'
-        elif dff.loc[t-1,"CMO"]<-50:
-            dff.loc[t-1,"CMO"] = 'downwardtrend'
-            resultdic['CMO']['prediction'] = 'downwardtrend'
-        else:
-            dff.loc[t-1,"CMO"] = 'neutral'
-            resultdic['CMO']['prediction'] = 'neutral'
-        
-        
+        cond_list = [ 50 < df['CMO'] , ( -50 <= df['CMO'] ) & ( df['CMO'] <= 50 ),  df['CMO'] < -50 ]
+        df['CMO_pred'] = np.select(cond_list, ['upwardtrend','neutral', 'downwardtrend'], default='')
+        resultdic['CMO']['prediction'] = df['CMO_pred']
+      
+        # TODOs: Correct the logic of MACD       
         resultdic['MACD'] = {}
-        if dff.loc[t-1,"macd"]>dff.loc[t-1,"macdsignal"] :
-            dff.loc[t-1,"macd"] = 'overbought'
-            resultdic['MACD']['prediction'] = 'overbought'
-        elif dff.loc[t-1,"macd"]<dff.loc[t-1,"macdsignal"] :
-            dff.loc[t-1,"macd"] = 'oversold'
-            resultdic['MACD']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1,"macd"] = 'neutral'
-            resultdic['MACD']['prediction'] = 'neutral'
-        dff.drop(["macdsignal"],axis = 1,inplace = True )
-        
-        
+        cond_list = [ df['macdsignal']  < df['macd'] ,  df['macd'] < df['macdsignal'] ]
+        df['MACD_pred'] = np.select(cond_list, ['overbought', 'oversold'], default='')
+        resultdic['MACD']['prediction'] = df['MACD_pred']
+                
+         # TODOs: Correct the logic of EMA         
         resultdic['EMA'] = {}
-        if dff.loc[t-1, "EMA5"]>dff.loc[t-1,"EMA10"] :
-            dff.loc[t-1, "EMA"] = 'overbought'
-            resultdic['EMA']['prediction'] = 'overbought'
-        elif dff.loc[t-1,"EMA10"]<dff.loc[t-1, "EMA5"] :
-            dff.loc[t-1, "EMA"] = 'oversold'
-            resultdic['EMA']['prediction'] = 'oversold'
-        else:
-            dff.loc[t-1, "EMA"] = 'neutral'
-            resultdic['EMA']['prediction'] = 'neutral'
-        dff.drop(["EMA5","EMA10"],axis = 1,inplace = True )
-        
-        dff.drop(["High","Low","Close","Volume","BIAS","Prediction"],axis=1,inplace = True)
-        
+        cond_list = [ df['EMA10']  < df['EMA5'] ,  df['EMA5'] < df['EMA10'] ]
+        df['EMA_pred'] = np.select(cond_list, ['overbought', 'oversold'], default='')
+        resultdic['EMA']['prediction'] = df['EMA_pred']
+
         return resultdic
        
     
