@@ -21,30 +21,22 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 import pandas_ta as tal
 import warnings
+from data_reader import DataReader
+
 warnings.filterwarnings("ignore")
 
 # Data fetching
 class TechnicalAnalysis():
     
     
-    def __init__(self, s):
-        self.s = s
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self.dreader = DataReader(ticker)
         self.data_raw = self.get_data(s)
     
-    def get_data(self, s):
-        self.dfc = pd.read_excel("ClosePrice.xlsx").set_index('Date')
-        self.dfh = pd.read_excel("HighPrice.xlsx").set_index('Date')
-        self.dfl = pd.read_excel("LowPrice.xlsx").set_index('Date')
-        self.dfv = pd.read_excel("Volume.xlsx").set_index('Date')
-            
-        self.dfc_ticker = self.dfc[s].rename("Close")      
-        self.dfh_ticker = self.dfh[s].rename("High")    
-        self.dfl_ticker = self.dfl[s].rename("Low")
-        self.dfv_ticker = self.dfv[s].rename("Volume")
-                    
-        self.data_raw = pd.concat([self.dfc_ticker,self.dfh_ticker,self.dfl_ticker,self.dfv_ticker], axis = 1)
-        
-        self.data_raw = self.data_raw.dropna()#.interpolate()
+    def get_data(self, ticker):
+        self.data_ohlcv = self.dreader.get_ohlcv()        
+        self.data_raw = self.data_ohlcv.dropna()#.interpolate()
 
         return self.data_raw
     
@@ -56,7 +48,10 @@ class TechnicalAnalysis():
         df_ta['EMA5'] = ta.EMA(df_ta['Close'], timeperiod = 5)
         df_ta['EMA10'] = ta.EMA(df_ta['Close'], timeperiod = 10)
     
-        df_ta['up_band'],df_ta['mid_band'],df_ta['low_band'] = ta.BBANDS(df_ta['Close'], timeperiod =20)
+        df_ta['up_band_1dev'],df_ta['mid_band'],df_ta['low_band_1dev'] = ta.BBANDS(df_ta['Close'], timeperiod =20, nbdevup=1, nbdevdn=1)
+        df_ta['up_band_2dev'],df_ta['mid_band'],df_ta['low_band_2dev'] = ta.BBANDS(df_ta['Close'], timeperiod =20, nbdevup=2, nbdevdn=2)
+        df_ta['up_band_3dev'],df_ta['mid_band'],df_ta['low_band_3dev'] = ta.BBANDS(df_ta['Close'], timeperiod =20, nbdevup=3, nbdevdn=3)
+
         df_ta['rsi'] = ta.RSI(df_ta['Close'],14)
         df_ta['BIAS'] = tal.bias(df_ta['Close'])
         df_ta['PSY'] = tal.psl(df_ta['Close'])
@@ -65,9 +60,7 @@ class TechnicalAnalysis():
         df_ta['PPO'] = ta.PPO(df_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
         df_ta['APO'] = ta.APO(df_ta['Close'], fastperiod=12, slowperiod=26, matype=0)
         df_ta['WMSR'] = ta.WILLR(df_ta['High'],df_ta['Low'], df_ta['Close'], timeperiod=14)
-        macd, macdsignal, macdhist = ta.MACD(df_ta['Close'])
-        df_ta['macd'] = macd
-        df_ta['macdsignal'] = macdsignal
+        df_ta['macd'], df_ta['macdsignal'], macdhist = ta.MACD(df_ta['Close'])
         df_ta['AR'] = ta.AROONOSC(df_ta['High'],df_ta['Low'], timeperiod=14)
         df_ta["VR"] = tal.pvr(df_ta['Close'],df_ta['Volume'])
         kc = tal.kc(df_ta['High'],df_ta['Low'], df_ta['Close'])
@@ -87,18 +80,73 @@ class TechnicalAnalysis():
         df_enc['RSI_enc'] = pd.cut(df_enc['rsi'], bins=[0, 15, 30, 70, 85, 100], labels=[1,2,3,4,5])
         df_enc['WMSR_enc'] = pd.cut(df_enc['WMSR'], bins=[-100, -90, -80, -20, -10, 0], labels=[1,2,3,4,5])
         df_enc['CCI_enc'] = pd.cut(df_enc['CCI'], bins=[-500, -200, -100, 0, 100, 200, 500], labels=[1,2,3,4,5,6])
-
+        df_enc['ROC_enc'] = pd.cut(df_enc['ROC'], bins=[-500, -50, -20, -10, -5, 0, 5, 10, 20, 50, 500], labels=[1,2,3,4,5,6,7,8,9,10])
+        df_enc['AR_enc'] = pd.cut(df_enc['AR'], bins=[0, 5, 10, 50, 90, 95, 100], labels=[1,2,3,4,5,6])
+        df_enc['PSY_enc'] = pd.cut(df_enc['PSY'], bins=[0, 10, 25, 50, 75, 100], labels=[1,2,3,4,5])
+        df_enc['CMO_enc'] = pd.cut(df_enc['CMO'], bins=[-100, -75, -50, 0, 50, 75, 100], labels=[1,2,3,4,5,6])
+        
         df_enc['KDJ_enc'] = pd.cut(df_enc['K_9_3'], bins=[0, 20, 80, 100], labels=[1,2,3])
         
-        cond_list = [df_enc['up_band'] < df_enc['Close'] , (df_enc['low_band'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['up_band'] ),  df_enc['Close'] < df_enc['low_band']]
-        df_enc['BOLL_enc'] = np.select(cond_list, [3,2,1], default=np.nan)                
+        cond_list = [
+                     df_enc['Close'] < df_enc['low_band_3dev'],
+                     (df_enc['low_band_3dev'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['low_band_2dev'] ),  
+                     (df_enc['low_band_2dev'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['low_band_1dev'] ),  
+                     (df_enc['low_band_1dev'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['mid_band'] ),  
+                     (df_enc['mid_band'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['up_band_1dev'] ),  
+                     (df_enc['up_band_1dev'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['up_band_2dev'] ),  
+                     (df_enc['up_band_2dev'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['up_band_3dev'] ),                          
+                     df_enc['up_band_3dev'] < df_enc['Close'] , 
+                     ]
+        df_enc['BOLL_enc'] = np.select(cond_list, [0,1,2,3,4,5,6,7], default=np.nan)                
 
         cond_list = [df_enc['KCUe_20_2'] < df_enc['Close'] , (df_enc['KCLe_20_2'] <= df_enc['Close'] ) & ( df_enc['Close'] <= df_enc['KCUe_20_2'] ),  df_enc['Close'] < df_enc['KCLe_20_2']]
         df_enc['KC_enc'] = np.select(cond_list, [3,2,1], default=np.nan)
 
-        cond_list = [df_enc['macdsignal'] < df_enc['macd'] , df_enc['macd'] < df_enc['macdsignal']]
-        df_enc['MACD_enc'] = np.select(cond_list, [3,1], default=np.nan)
-       
+        cond_list = [
+                     ( df_enc['macd'].shift(1) < 0 ) & ( df_enc['macd'] > 0 ) , 
+                     ( df_enc['macd'].shift(1) > 0 ) & ( df_enc['macd'] < 0 ) , 
+                     ( df_enc['macdsignal'].shift(1) < df_enc['macd'].shift(1) ) & ( df_enc['macdsignal'] > df_enc['macd'] ) , 
+                     ( df_enc['macdsignal'].shift(1) > df_enc['macd'].shift(1) ) & ( df_enc['macdsignal'] < df_enc['macd'] ) ,                      
+                     ]
+        df_enc['MACD_enc'] = np.select(cond_list, [1,2,3,4], default=0)
+
+        cond_list = [
+                     ( df_enc['PPO'].shift(1) < 0 ) & ( df_enc['PPO'] < 0 ) , 
+                     ( df_enc['PPO'].shift(1) < 0 ) & ( df_enc['PPO'] > 0 ) , 
+                     ( df_enc['PPO'].shift(1) > 0 ) & ( df_enc['PPO'] > 0 ) , 
+                     ( df_enc['PPO'].shift(1) > 0 ) & ( df_enc['PPO'] < 0 ) , 
+                     ]
+        df_enc['PPO_enc'] = np.select(cond_list, [1,2,3,4], default=0)
+
+        cond_list = [
+                     ( df_enc['APO'].shift(1) < 0 ) & ( df_enc['APO'] < 0 ) , 
+                     ( df_enc['APO'].shift(1) < 0 ) & ( df_enc['APO'] > 0 ) , 
+                     ( df_enc['APO'].shift(1) > 0 ) & ( df_enc['APO'] > 0 ) , 
+                     ( df_enc['APO'].shift(1) > 0 ) & ( df_enc['APO'] < 0 ) , 
+                     ]
+        df_enc['APO_enc'] = np.select(cond_list, [1,2,3,4], default=0)
+
+
+        cond_list = [
+                     ( df_enc['MA'].shift(1) < df_enc['Close'].shift(1) ) & ( df_enc['MA'] < df_enc['Close'] ) , 
+                     ( df_enc['MA'].shift(1) < df_enc['Close'].shift(1) ) & ( df_enc['MA'] > df_enc['Close'] ) , 
+                     ( df_enc['MA'].shift(1) > df_enc['Close'].shift(1) ) & ( df_enc['MA'] > df_enc['Close'] ) , 
+                     ( df_enc['MA'].shift(1) > df_enc['Close'].shift(1) ) & ( df_enc['MA'] < df_enc['Close'] ) , 
+                     ]
+        df_enc['MA_enc'] = np.select(cond_list, [1,2,3,4], default=np.nan)
+
+        cond_list = [
+                     ( df_enc['EMA5'].shift(1) < df_enc['EMA10'].shift(1) ) & ( df_enc['EMA5'] < df_enc['EMA10'] ) , 
+                     ( df_enc['EMA5'].shift(1) < df_enc['EMA10'].shift(1) ) & ( df_enc['EMA5'] > df_enc['EMA10'] ) , 
+                     ( df_enc['EMA5'].shift(1) > df_enc['EMA10'].shift(1) ) & ( df_enc['EMA5'] > df_enc['EMA10'] ) , 
+                     ( df_enc['EMA5'].shift(1) > df_enc['EMA10'].shift(1) ) & ( df_enc['EMA5'] < df_enc['EMA10'] ) , 
+                     ]
+        df_enc['EMA_enc'] = np.select(cond_list, [1,2,3,4], default=np.nan)
+
+
+        cond_list = [df_enc['Close'] >= df_enc['SAR'] , df_enc['Close'] < df_enc['SAR']]
+        df_enc['SAR_enc'] = np.select(cond_list, [1,0], default=np.nan)
+        
         return df_enc
 
 
@@ -113,14 +161,7 @@ class TechnicalAnalysis():
         
         
     def get_feature_response_variables_for_model(self, data_input):
-        data = data_input.copy()
-
-        data.drop(['rsi'],axis=1,inplace = True)   
-        data.drop(['macd','macdsignal'],axis=1,inplace = True) 
-        data.drop(['up_band','low_band','mid_band'],axis=1,inplace = True) 
-        data.drop(["KCUe_20_2","KCLe_20_2","KCBe_20_2"],axis = 1,inplace = True )
-        data.drop(["K_9_3","D_9_3","J_9_3"],axis = 1,inplace = True )
-    
+        data = data_input.dropna()
         y = data['ret_next1day_enc']
         feature_list = ['MA', 'EMA', 'EMA5', 'EMA10', 'CMO', 'PPO', 'APO', 'WMSR', 'VR', 'SAR', 'RSI_enc', 'KC_enc', 'MACD_enc']
         X = data[feature_list]
@@ -163,7 +204,7 @@ class TechnicalAnalysis():
 
         resultdic['SAR'] = {}               
         cond_list = [df['Close'] >= df['SAR'] , df['Close'] < df['SAR']]
-        df['SAR_pred'] = np.select(cond_list, ['Buysignal','sellsignal'], default='')
+        df['SAR_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
         resultdic['SAR']['prediction'] = df['SAR_pred']
 
         resultdic['KC'] = {}
@@ -207,7 +248,7 @@ class TechnicalAnalysis():
         resultdic['MA']['prediction'] = df['MA_pred']
 
         resultdic['BOLL'] = {}
-        cond_list = [ df['up_band'] < df['Close'] , ( df['low_band'] <= df['Close'] ) & ( df['Close'] <= df['up_band'] ),  df['Close'] < df['low_band'] ]
+        cond_list = [ df['up_band_2dev'] < df['Close'] , ( df['low_band_2dev'] <= df['Close'] ) & ( df['Close'] <= df['up_band_2dev'] ),  df['Close'] < df['low_band_2dev'] ]
         df['BOLL_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
         resultdic['BOLL']['prediction'] = df['BOLL_pred']
 
@@ -253,7 +294,7 @@ class TechnicalAnalysis():
         df['MACD_pred'] = np.select(cond_list, ['overbought', 'oversold'], default='')
         resultdic['MACD']['prediction'] = df['MACD_pred']
                 
-         # TODOs: Correct the logic of EMA         
+        # TODOs: Correct the logic of EMA         
         resultdic['EMA'] = {}
         cond_list = [ df['EMA10']  < df['EMA5'] ,  df['EMA5'] < df['EMA10'] ]
         df['EMA_pred'] = np.select(cond_list, ['overbought', 'oversold'], default='')
@@ -266,7 +307,7 @@ class TechnicalAnalysis():
         indicators ={  
                     "MA" : 20,
                     "EMA" : 20,
-                    "BOLL" :20,
+                    "BOLL" :20, #Done
                     "RSI":14,  # Done
                     "MACD":9, 
                     "CCI":14,  # Done   
@@ -276,14 +317,14 @@ class TechnicalAnalysis():
                     "PSY": 0,
                     "WMSR": 20,  # Done
                     "CMO": 20,
-                    "ROC":20,
+                    "ROC":20,    # Done
                     "PPO":26,
                     "APO":26,
                     "AR" : 14,
-                    "KDJ" :0,
-                    "KC":0, 
+                    "KDJ" :0,  # Done
+                    "KC":0,    # Done
                     "VR":0,
-                    "SAR":0        
+                    "SAR":0    # Done    
                     }
     
         df = data
@@ -299,209 +340,106 @@ class TechnicalAnalysis():
             count = 0
             count_rise = 0
             count_sell = 0
-            if(indicator == 'SAR'):
-                        
-                for epoch in df.index: #range(length):
-        
-                    if df.loc[epoch,"Close"]>df.loc[epoch, indicator] :
-        
-                        count_rise = count_rise+1
-                        count = count+1
-                    elif df.loc[epoch,"Close"]<df.loc[epoch, indicator] :
-        
-                        count_sell = count_sell+1
-                        count = count+1
+            
+            if(indicator == 'SAR'):                        
+                current_state =  df['SAR_enc'].iloc[-1]
+                df_current_state = df[df['SAR_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+    
             elif(indicator == 'KC' ):
                 current_state =  df['KC_enc'].iloc[-1]
                 df_current_state = df[df['KC_enc'] == current_state]
                 nextperiod_return_s = df_current_state['ret_next1day']
  
-                count = df_current_state['ret_next1day'].count()
-                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
-                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
-                fall_rate = count_sell/count                 
-                avg_change = nextperiod_return_s.mean()
-                max_increase = nextperiod_return_s.max()
-                max_decline = nextperiod_return_s.min()
-
             elif(indicator == 'KDJ'):
-                for epoch in df.index: #range(length ):   
-                    if 90<df.loc[epoch ,'K_9_3'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 20 >df.loc[epoch, 'D_9_3'] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['KDJ_enc'].iloc[-1]
+                df_current_state = df[df['KDJ_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
             elif(indicator == 'VR'):
-                for epoch in df.index: #range(length ):   
-                    if 2.5<df.loc[epoch ,'VR'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 2.5 >df.loc[epoch, 'VR'] :
-                        count_sell = count_sell+1
-                        count = count+1
-
+                current_state =  df['VR'].iloc[-1]
+                df_current_state = df[df['VR'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
             elif(indicator == 'CCI'):
                 current_state =  df['CCI_enc'].iloc[-1]
                 df_current_state = df[df['CCI_enc'] == current_state]
                 nextperiod_return_s = df_current_state['ret_next1day']
  
-                count = df_current_state['ret_next1day'].count()
-                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
-                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
-                fall_rate = count_sell/count                 
-                avg_change = nextperiod_return_s.mean()
-                max_increase = nextperiod_return_s.max()
-                max_decline = nextperiod_return_s.min()
-
-
             elif(indicator == 'PSY'):
-                for epoch in df.index: #range(length ):   
-                    if 70<df.loc[epoch ,'PSY'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 30 >df.loc[epoch, 'PSY'] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['PSY_enc'].iloc[-1]
+                df_current_state = df[df['PSY_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
             elif(indicator == 'WMSR'):
                 current_state =  df['WMSR_enc'].iloc[-1]
                 df_current_state = df[df['WMSR_enc'] == current_state]
                 nextperiod_return_s = df_current_state['ret_next1day']
- 
-                count = df_current_state['ret_next1day'].count()
-                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
-                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
-                fall_rate = count_sell/count                 
-                avg_change = nextperiod_return_s.mean()
-                max_increase = nextperiod_return_s.max()
-                max_decline = nextperiod_return_s.min()
-
-            elif(indicator == 'MA'):
-                for epoch in df.index: #range(length ):   
-                    if -20<df.loc[epoch ,'WMSR'] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif -80>df.loc[epoch, 'WMSR'] :
-                        count_sell = count_sell+1
-                        count = count+1
-                    
+                     
             elif(indicator == "RSI"):
                 current_state =  df['RSI_enc'].iloc[-1]
                 df_current_state = df[df['RSI_enc'] == current_state]
                 nextperiod_return_s = df_current_state['ret_next1day']
- 
-                count = df_current_state['ret_next1day'].count()
-                count_rise = ( df_current_state['ret_next1day'] > 0).sum()
-                count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
-                fall_rate = count_sell/count                 
-                avg_change = nextperiod_return_s.mean()
-                max_increase = nextperiod_return_s.max()
-                max_decline = nextperiod_return_s.min()
-                                    
-                
+                 
             elif(indicator == "PPO"):
-                for epoch in df.index: #range(length ):   
-                    if 10<df.loc[epoch ,"PPO"] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif -10>df.loc[epoch, "PPO"] :
-                        count_sell = count_sell+1
-                        count = count+1
-                    
+                current_state =  df['PPO_enc'].iloc[-1]
+                df_current_state = df[df['PPO_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+                     
             elif(indicator == "APO"):
-                for epoch in df.index: #range(length ):   
-                    if 0<df.loc[epoch ,"APO"] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 0>df.loc[epoch, "APO"] :
-                        count_sell = count_sell+1
-                        count = count+1
-           
+                current_state =  df['APO_enc'].iloc[-1]
+                df_current_state = df[df['APO_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+            
             elif(indicator == "AR"):
-                for epoch in df.index: #range(length ):   
-                    if 0 <df.loc[epoch ,"AR"] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 0>df.loc[epoch, "AR"] :
-                        count_sell = count_sell+1
-                        count = count+1
-        
+                current_state =  df['AR_enc'].iloc[-1]
+                df_current_state = df[df['AR_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+         
             elif(indicator == "ROC"):
-                for epoch in df.index: #range(length ):   
-                    if 0<df.loc[epoch ,"ROC"] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif 0>df.loc[epoch, "ROC"] :
-                        count_sell = count_sell+1
-                        count = count+1
-                    
+                current_state =  df['ROC_enc'].iloc[-1]
+                df_current_state = df[df['ROC_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+                     
             elif(indicator == "CMO"):
-                for epoch in df.index: #range(length ):   
-                    if 50<df.loc[epoch ,"CMO"] :
-                        count_rise = count_rise+1
-                        count = count+1
-        
-                    elif -50>df.loc[epoch, "CMO"] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['CMO_enc'].iloc[-1]
+                df_current_state = df[df['CMO_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
             elif(indicator == "MA"):
-                for epoch in df.index: #range(length ):
-        
-                    if df.loc[epoch,"Close"]>df.loc[epoch ,"MA"] :
-                        count_rise = count_rise+1
-                        count = count+1
-                    elif df.loc[epoch ,"MA"]<df.loc[epoch,"Close"] :
-                        count_sell = count_sell+1
-                        count = count+1
+                current_state =  df['MA_enc'].iloc[-1]
+                df_current_state = df[df['MA_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
             elif(indicator == "BOLL"):
-                for epoch in df.index: #range(length ):
-        
-                    if df.loc[epoch,"Close"]>df.loc[epoch ,"up_band"] :
-                        count_rise = count_rise+1
-                        count = count+1
-                    elif df.loc[epoch ,"low_band"]<df.loc[epoch,"Close"] :
-                        count_sell = count_sell+1
-                        count = count+1
-                    
+                current_state =  df['BOLL_enc'].iloc[-1]
+                df_current_state = df[df['BOLL_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+                     
             elif(indicator == "MACD"):
-                for epoch in df.index: #range(length ):
-        
-                    if df.loc[epoch,"macd"]>df.loc[epoch ,"macdsignal"] :
-                        count_rise = count_rise+1
-                        count = count+1
-                    elif df.loc[epoch ,"macd"]<df.loc[epoch,"macdsignal"] :
-                        count_sell = count_sell+1
-                        count = count+1
-                        
-            elif(indicator == "EMA"):
-                for epoch in df.index: #range(length ):
-                    
-                        
-                    if df.loc[epoch, "EMA5"]>df.loc[epoch,"EMA10"] :
-                        count_rise = count_rise+1
-                        count = count+1                    
-                    
-                    elif df.loc[epoch,"EMA10"]<df.loc[epoch, "EMA5"] :
-                         count_sell = count_sell+1
-                         count = count+1
+                current_state =  df['MACD_enc'].iloc[-1]
+                df_current_state = df[df['MACD_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
                          
+            elif(indicator == "EMA"):
+                current_state =  df['EMA_enc'].iloc[-1]
+                df_current_state = df[df['EMA_enc'] == current_state]
+                nextperiod_return_s = df_current_state['ret_next1day']
+ 
+
+            count = df_current_state['ret_next1day'].count()
+            count_rise = ( df_current_state['ret_next1day'] > 0).sum()
+            count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
+            fall_rate = count_sell/count                 
+            avg_change = nextperiod_return_s.mean()
+            max_increase = nextperiod_return_s.max()
+            max_decline = nextperiod_return_s.min()
+
+
             resultdic[indicator]['Count'] = count
             resultdic[indicator]['NextDayRise'] = count_rise
             resultdic[indicator]['NextDayFall'] = count_sell
-            if count != 0:
-                
-               resultdic[indicator]['FallRate'] = float (count_sell/count)
-            else:
-                 resultdic[indicator]['FallRate'] = float (0)
-                 
+            resultdic[indicator]['FallRate'] = float (count_sell/count) if count != 0 else 0                 
             resultdic[indicator]['AVG_Change']= avg_change
             resultdic[indicator]['MAX_Increase']= max_increase
             resultdic[indicator]['MAX_Decline']= max_decline
@@ -518,7 +456,7 @@ class TechnicalAnalysis():
         self.result = self.fit_train_model(self.X, self.y)
     
         self.resultdic = {}
-        self.resultdic['Tickername'] = self.s
+        self.resultdic['Tickername'] = self.ticker
         self.resultdic['Auroscore'] = self.result
     
         self.resultdic = self.get_individual_indicator_prediction(self.data_processed, self.resultdic)
@@ -529,7 +467,7 @@ class TechnicalAnalysis():
 if __name__ == "__main__":
     from pprint import pprint
     
-    s = 'PAG LN Equity'
+    s = '1088 HK Equity' #'PAG LN Equity'
     tana = TechnicalAnalysis(s)
     result_dict = tana.get_auro_score()
     pprint(result_dict)
@@ -538,6 +476,6 @@ if __name__ == "__main__":
     with open(output_fpath, 'w') as f:
         pprint(result_dict, stream=f) #print(result_dict, file=f)
             
-    # prediction code on the test dataset
-    #self.y_pred = self.model.predict(self.X_test_scaled)
-    #self.model_summary(self.y_test, self.y_pred)
+    #prediction code on the test dataset
+    y_pred = tana.model.predict(tana.X_test_scaled)
+    tana.model_summary(tana.y_test, y_pred)
