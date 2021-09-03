@@ -31,7 +31,7 @@ class TechnicalAnalysis():
     def __init__(self, ticker):
         self.ticker = ticker
         self.dreader = DataReader(ticker)
-        self.data_raw = self.get_data(s)
+        self.data_raw = self.get_data(ticker)
     
     def get_data(self, ticker):
         self.data_ohlcv = self.dreader.get_ohlcv()        
@@ -269,12 +269,12 @@ class TechnicalAnalysis():
         df['APO_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
         resultdic['APO']['prediction'] = df['APO_pred']
 
-
+        '''
         resultdic['AR'] = {}
         cond_list = [ df['AR'] >= 0, df['AR'] < 0 ]
         df['AR_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
         resultdic['AR']['prediction'] = df['AR_pred']
-
+        '''
         
         resultdic['ROC'] = {}
         cond_list = [ df['ROC'] >= 0, df['ROC'] < 0 ]
@@ -319,7 +319,7 @@ class TechnicalAnalysis():
                     "ROC":20,    # Done
                     "PPO":26,
                     "APO":26,
-                    "AR" : 14,
+                    #"AR" : 14,
                     "KDJ" :0,  # Done
                     "KC":0,    # Done
                     "VR":0,
