@@ -27,8 +27,7 @@ warnings.filterwarnings("ignore")
 
 # Data fetching
 class TechnicalAnalysis():
-    
-    
+        
     def __init__(self, ticker):
         self.ticker = ticker
         self.dreader = DataReader(ticker)
@@ -467,7 +466,7 @@ class TechnicalAnalysis():
 if __name__ == "__main__":
     from pprint import pprint
     
-    s = '1088 HK Equity' #'PAG LN Equity'
+    s = 'INDIGO IN Equity' #'PAG LN Equity'
     tana = TechnicalAnalysis(s)
     result_dict = tana.get_auro_score()
     pprint(result_dict)
