@@ -17,7 +17,7 @@ from sklearn import metrics
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 
 import pandas_ta as tal
 import warnings
@@ -182,11 +182,15 @@ class TechnicalAnalysis():
         res = res.transpose()  
         result = self.model.predict_proba(res)
         
-        result  = pd.DataFrame(result)
-        result = result.loc[0,1] 
+        result_df  = pd.DataFrame(result)
+        y_predict_proba = result_df.loc[0,1] 
         #label = 1 rise in price #1 is column name for prediction proba. of label 1 
+
+        #Model summary - prediction code on the test dataset
+        y_pred = self.model.predict(self.X_test_scaled)
+        self.model_summary(self.y_test, y_pred)
         
-        return result
+        return y_predict_proba
 
     def model_summary(self, y, y_pred):
         model = self.model
@@ -195,7 +199,9 @@ class TechnicalAnalysis():
         cm_df.columns.name = 'True'
         print(cm_df)
         print(classification_report(y, y_pred))
-    
+        self.resultdic['acccuracy_score'] = accuracy_score(y, y_pred)    
+        print ("accuracy of the prediction: {}".format(self.resultdic['acccuracy_score']))
+        
     def get_individual_indicator_prediction(self, data, resultdic):
         data1 = data.copy()
         df = data1.iloc[-1,:]
@@ -447,20 +453,20 @@ class TechnicalAnalysis():
     
     def get_auro_score(self):
         #data_raw = get_data(s)
+        self.resultdic = {}
+        self.resultdic['Tickername'] = self.ticker
         
         self.data_ta = self.compute_technical_indicators(self.data_raw)
         self.data_ta_encoded = self.encode_technical_indicators(self.data_ta)
         self.data_processed = self.preprocess_data(self.data_ta_encoded)
         self.X, self.y  = self.get_feature_response_variables_for_model(self.data_processed)
-        self.result = self.fit_train_model(self.X, self.y)
+        self.score = self.fit_train_model(self.X, self.y)
     
-        self.resultdic = {}
-        self.resultdic['Tickername'] = self.ticker
-        self.resultdic['Auroscore'] = self.result
+        self.resultdic['Auroscore'] = self.score
     
         self.resultdic = self.get_individual_indicator_prediction(self.data_processed, self.resultdic)
         self.resultdic = self.get_backtesting_result(self.data_processed, self.resultdic)      
-    
+  
         return self.resultdic 
 
 if __name__ == "__main__":
@@ -475,6 +481,3 @@ if __name__ == "__main__":
     with open(output_fpath, 'w') as f:
         pprint(result_dict, stream=f) #print(result_dict, file=f)
             
-    #prediction code on the test dataset
-    y_pred = tana.model.predict(tana.X_test_scaled)
-    tana.model_summary(tana.y_test, y_pred)

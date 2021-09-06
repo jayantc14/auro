@@ -27,9 +27,10 @@ def get_technical_data():
     
     params_dict = request.args 
     ticker = params_dict['ticker']
+    print ("FlaskAppFinal.get_technical_data: running TechnicalAnalysis for {}, type {}".format(ticker, type(ticker)))
     t = str(ticker)
+
     tana = TechnicalAnalysis(t)
-    #print ("FlaskAppFinal.get_technical_data: data received from TechnicalAnalysis module is {} ".format(result_dict))
 
     result_dict = tana.get_auro_score()
     #print ("FlaskAppFinal.get_technical_data: data received from TechnicalAnalysis module is {} ".format(result_dict))
