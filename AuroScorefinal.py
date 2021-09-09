@@ -209,100 +209,100 @@ class TechnicalAnalysis():
 
         resultdic['SAR'] = {}               
         cond_list = [df['Close'] >= df['SAR'] , df['Close'] < df['SAR']]
-        df['SAR_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        df['SAR_pred'] = np.select(cond_list, ['bullish','bearish'], default='')
         resultdic['SAR']['prediction'] = df['SAR_pred']
 
         resultdic['KC'] = {}
         cond_list = [df['KCUe_20_2'] < df['Close'] , (df['KCLe_20_2'] <= df['Close'] ) & ( df['Close'] <= df['KCUe_20_2'] ),  df['Close'] < df['KCLe_20_2']]
-        df['KC_pred'] = np.select(cond_list, ['Buysignal','neutral', 'sellsignal'], default='')
+        df['KC_pred'] = np.select(cond_list, ['bullish','neutral', 'bearish'], default='')
         resultdic['KC']['prediction'] = df['KC_pred']
         
         resultdic['KDJ'] = {}
         cond_list = [ 80 < df['K_9_3'], 20 > df['D_9_3']]
-        df['KDJ_pred'] = np.select(cond_list, ['overbought','oversold'], default='neutral')
+        df['KDJ_pred'] = np.select(cond_list, ['bearish','bullish'], default='neutral')
         resultdic['KDJ']['prediction'] = df['KDJ_pred']
 
 
         resultdic['VR'] = {}
         cond_list = [ df['VR'] >= 2.5 , df['VR'] < 2.5 ]
-        df['VR_pred'] = np.select(cond_list, ['sellsignal','Buysignal'], default='')
+        df['VR_pred'] = np.select(cond_list, ['bearish','bullish'], default='')
         resultdic['VR']['prediction'] = df['VR_pred']
         
                 
         resultdic['CCI'] = {}
         cond_list = [100 < df['CCI'] , ( -100 <= df['CCI'] ) & ( df['CCI'] <= 100 ),  df['CCI'] < -100 ]
-        df['CCI_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        df['CCI_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
         resultdic['CCI']['prediction'] = df['CCI_pred']
 
         
         resultdic['PSY'] = {}
         cond_list = [ 70 < df['PSY'] , ( 30 <= df['PSY'] ) & ( df['PSY'] <= 70 ),  df['PSY'] < 30 ]
-        df['PSY_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        df['PSY_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
         resultdic['PSY']['prediction'] = df['PSY_pred']
 
 
         resultdic['WMSR'] = {}
         cond_list = [ -20 < df['WMSR'] , ( -80 <= df['WMSR'] ) & ( df['WMSR'] <= -20 ),  df['WMSR'] < -80 ]
-        df['WMSR_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        df['WMSR_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
         resultdic['WMSR']['prediction'] = df['WMSR_pred']
 
         # TODOs: Correct the logic of Moving average crossover
         resultdic['MA'] = {}
         cond_list = [ df['Close'] >= df['MA'], df['Close'] < df['MA'] ]
-        df['MA_pred'] = np.select(cond_list, ['Buysignal','sellsignal'], default='')
+        df['MA_pred'] = np.select(cond_list, ['bullish','bearish'], default='')
         resultdic['MA']['prediction'] = df['MA_pred']
 
         resultdic['BOLL'] = {}
         cond_list = [ df['up_band_2dev'] < df['Close'] , ( df['low_band_2dev'] <= df['Close'] ) & ( df['Close'] <= df['up_band_2dev'] ),  df['Close'] < df['low_band_2dev'] ]
-        df['BOLL_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        df['BOLL_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
         resultdic['BOLL']['prediction'] = df['BOLL_pred']
 
 
         resultdic['RSI'] = {}
         cond_list = [ 70 < df['rsi'] , ( 30 <= df['rsi'] ) & ( df['rsi'] <= 70 ),  df['rsi'] < 30 ]
-        df['RSI_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        df['RSI_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
         resultdic['RSI']['prediction'] = df['RSI_pred']
         
         
         resultdic['PPO'] = {}
         cond_list = [ 10 < df['PPO'] , ( -10 <= df['PPO'] ) & ( df['PPO'] <= 10 ),  df['PPO'] < -10 ]
-        df['PPO_pred'] = np.select(cond_list, ['overbought','neutral', 'oversold'], default='')
+        df['PPO_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
         resultdic['PPO']['prediction'] = df['PPO_pred']
 
         
         resultdic['APO'] = {}
         cond_list = [ df['APO'] >= 0, df['APO'] < 0 ]
-        df['APO_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        df['APO_pred'] = np.select(cond_list, ['bullish','bearish'], default='')
         resultdic['APO']['prediction'] = df['APO_pred']
 
         '''
         resultdic['AR'] = {}
         cond_list = [ df['AR'] >= 0, df['AR'] < 0 ]
-        df['AR_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        df['AR_pred'] = np.select(cond_list, ['bullish','bearish'], default='')
         resultdic['AR']['prediction'] = df['AR_pred']
         '''
         
         resultdic['ROC'] = {}
         cond_list = [ df['ROC'] >= 0, df['ROC'] < 0 ]
-        df['ROC_pred'] = np.select(cond_list, ['upwardtrend','downwardtrend'], default='')
+        df['ROC_pred'] = np.select(cond_list, ['bullish','bearish'], default='')
         resultdic['ROC']['prediction'] = df['ROC_pred']
 
         
         resultdic['CMO'] = {}
         cond_list = [ 50 < df['CMO'] , ( -50 <= df['CMO'] ) & ( df['CMO'] <= 50 ),  df['CMO'] < -50 ]
-        df['CMO_pred'] = np.select(cond_list, ['upwardtrend','neutral', 'downwardtrend'], default='')
+        df['CMO_pred'] = np.select(cond_list, ['bullish','neutral', 'bearish'], default='')
         resultdic['CMO']['prediction'] = df['CMO_pred']
       
         # TODOs: Correct the logic of MACD       
         resultdic['MACD'] = {}
         cond_list = [ df['macdsignal']  < df['macd'] ,  df['macd'] < df['macdsignal'] ]
-        df['MACD_pred'] = np.select(cond_list, ['overbought', 'oversold'], default='')
+        df['MACD_pred'] = np.select(cond_list, ['bearish', 'bullish'], default='')
         resultdic['MACD']['prediction'] = df['MACD_pred']
                 
         # TODOs: Correct the logic of EMA         
         resultdic['EMA'] = {}
         cond_list = [ df['EMA10']  < df['EMA5'] ,  df['EMA5'] < df['EMA10'] ]
-        df['EMA_pred'] = np.select(cond_list, ['overbought', 'oversold'], default='')
+        df['EMA_pred'] = np.select(cond_list, ['bearish', 'bullish'], default='')
         resultdic['EMA']['prediction'] = df['EMA_pred']
 
         return resultdic
@@ -437,6 +437,9 @@ class TechnicalAnalysis():
             count_sell = ( df_current_state['ret_next1day'] <= 0).sum()
             fall_rate = count_sell/count                 
             avg_change = nextperiod_return_s.mean()
+            avg_change_rise = nextperiod_return_s[nextperiod_return_s > 0].mean()
+            avg_change_fall = nextperiod_return_s[nextperiod_return_s < 0].mean()
+
             max_increase = nextperiod_return_s.max()
             max_decline = nextperiod_return_s.min()
 
@@ -444,6 +447,7 @@ class TechnicalAnalysis():
             resultdic[indicator]['Count'] = count
             resultdic[indicator]['NextDayRise'] = count_rise
             resultdic[indicator]['NextDayFall'] = count_sell
+            resultdic[indicator]['RiseRate'] = float (count_rise/count) if count != 0 else 0
             resultdic[indicator]['FallRate'] = float (count_sell/count) if count != 0 else 0                 
             resultdic[indicator]['AVG_Change']= avg_change
             resultdic[indicator]['MAX_Increase']= max_increase
