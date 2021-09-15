@@ -84,7 +84,7 @@ class TechnicalAnalysis():
         df_enc['PSY_enc'] = pd.cut(df_enc['PSY'], bins=[0, 10, 25, 50, 75, 100], labels=[1,2,3,4,5])
         df_enc['CMO_enc'] = pd.cut(df_enc['CMO'], bins=[-100, -75, -50, 0, 50, 75, 100], labels=[1,2,3,4,5,6])
         
-        df_enc['KDJ_enc'] = pd.cut(df_enc['K_9_3'], bins=[0, 20, 80, 100], labels=[1,2,3])
+        df_enc['KDJ_enc'] = pd.cut(df_enc['K_9_3'], bins=[0, 10, 20, 80, 90, 100], labels=[1,2,3,4,5])
         
         cond_list = [
                      df_enc['Close'] < df_enc['low_band_3dev'],
@@ -218,9 +218,11 @@ class TechnicalAnalysis():
         resultdic['KC']['prediction'] = df['KC_pred']
         
         resultdic['KDJ'] = {}
-        cond_list = [ 80 < df['K_9_3'], 20 > df['D_9_3']]
-        df['KDJ_pred'] = np.select(cond_list, ['bearish','bullish'], default='neutral')
-        resultdic['KDJ']['prediction'] = df['KDJ_pred']
+        #cond_list = [ 80 < df['K_9_3'], 20 > df['D_9_3']]
+        #df['KDJ_pred'] = np.select(cond_list, ['bearish','bullish'], default='neutral')
+        #resultdic['KDJ']['prediction'] = df['KDJ_pred']
+        KDJ_map = {1:'strong_bullish', 2:'bullish', 3:'neutral', 4:'bearish', 5:'strong_bearish'}
+        resultdic['KDJ']['prediction'] = KDJ_map [df['KDJ_enc']]
 
 
         resultdic['VR'] = {}
@@ -236,15 +238,19 @@ class TechnicalAnalysis():
 
         
         resultdic['PSY'] = {}
-        cond_list = [ 70 < df['PSY'] , ( 30 <= df['PSY'] ) & ( df['PSY'] <= 70 ),  df['PSY'] < 30 ]
-        df['PSY_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
-        resultdic['PSY']['prediction'] = df['PSY_pred']
+        #cond_list = [ 70 < df['PSY'] , ( 30 <= df['PSY'] ) & ( df['PSY'] <= 70 ),  df['PSY'] < 30 ]
+        #df['PSY_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
+        #resultdic['PSY']['prediction'] = df['PSY_pred']
+        PSY_map = {1:'strong_bullish', 2:'bullish', 3:'neutral', 4:'bearish', 5:'strong_bearish'}
+        resultdic['PSY']['prediction'] = PSY_map [df['PSY_enc']]
 
 
         resultdic['WMSR'] = {}
-        cond_list = [ -20 < df['WMSR'] , ( -80 <= df['WMSR'] ) & ( df['WMSR'] <= -20 ),  df['WMSR'] < -80 ]
-        df['WMSR_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
-        resultdic['WMSR']['prediction'] = df['WMSR_pred']
+        #cond_list = [ -20 < df['WMSR'] , ( -80 <= df['WMSR'] ) & ( df['WMSR'] <= -20 ),  df['WMSR'] < -80 ]
+        #df['WMSR_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
+        WMSR_map = {1:'strong_bullish', 2:'bullish', 3:'neutral', 4:'bearish', 5:'strong_bearish'}
+        resultdic['WMSR']['prediction'] = WMSR_map [df['WMSR_enc']]
+
 
         # TODOs: Correct the logic of Moving average crossover
         resultdic['MA'] = {}
@@ -259,9 +265,10 @@ class TechnicalAnalysis():
 
 
         resultdic['RSI'] = {}
-        cond_list = [ 70 < df['rsi'] , ( 30 <= df['rsi'] ) & ( df['rsi'] <= 70 ),  df['rsi'] < 30 ]
-        df['RSI_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
-        resultdic['RSI']['prediction'] = df['RSI_pred']
+        #cond_list = [ 70 < df['rsi'] , ( 30 <= df['rsi'] ) & ( df['rsi'] <= 70 ),  df['rsi'] < 30 ]
+        #df['RSI_pred'] = np.select(cond_list, ['bearish','neutral', 'bullish'], default='')
+        RSI_map = {1:'strong_bullish', 2:'bullish', 3:'neutral', 4:'bearish', 5:'strong_bearish'}
+        resultdic['RSI']['prediction'] = RSI_map [df['RSI_enc']]
         
         
         resultdic['PPO'] = {}
