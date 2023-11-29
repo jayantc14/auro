@@ -31,10 +31,10 @@ class TechnicalAnalysis():
     def __init__(self, ticker):
         self.ticker = ticker
         self.dreader = DataReader(ticker)
-        self.data_raw = self.get_data(ticker)
+        self.data_raw = self.get_data()
     
-    def get_data(self, ticker):
-        self.data_ohlcv = self.dreader.get_ohlcv()        
+    def get_data(self):
+        self.data_ohlcv = self.dreader.get_ohlcv(self.ticker)        
         self.data_raw = self.data_ohlcv.dropna()#.interpolate()
 
         return self.data_raw

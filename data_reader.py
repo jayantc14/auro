@@ -42,12 +42,11 @@ class DataReader():
         return self.data_raw
 
     def get_ohlcv_from_database(self, ticker):
-        payload = { "ticker": self.ticker}            
+        payload = { "ticker": self.ticker}     
         self.ohlcv_json = requests.post(DB_API_URI_OHLCV, json = payload, headers=DB_API_HEADERS)
         self.ohlcv_db = self.ohlcv_json.json()["message"]
-        self.ohlcv_db_df = pd.DataFrame(self.ohlcv_db)        
+        self.ohlcv_db_df = pd.DataFrame(self.ohlcv_db) 
         self.ohlcv_df = self.ohlcv_db_df.set_index("date").drop(columns="ticker").rename(columns=DB_OHLCV_COLUMN_MAPPING)
-        
         return self.ohlcv_df
 
 
