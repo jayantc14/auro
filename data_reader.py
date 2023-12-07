@@ -10,7 +10,7 @@ import requests
 DB_API_ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTMwMSwiaWF0IjoxNjIwNjI0ODQwfQ.kOe7wSwZEHsefWiQFCGjL1sbVBZqpd_-G9nDcSrea_g'
 DB_API_HEADERS = {
     'Authorization': 'access_token {}'.format(DB_API_ACCESS_TOKEN)}
-DB_API_HEADERS = {}
+# DB_API_HEADERS = {}
 DB_API_URI_OHLCV = "http://44.240.12.174/technical_analysis/get_pricing"
 # DB_API_URI_OHLCV = "http://127.0.0.1:5050/technical_analysis/get_pricing"
 DB_OHLCV_COLUMN_MAPPING = {"close_price": 'Close', "open_price": 'Open',
