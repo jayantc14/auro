@@ -34,7 +34,7 @@ class TechnicalAnalysis():
         self.data_raw = self.get_data()
     
     def get_data(self):
-        self.data_ohlcv = self.dreader.get_ohlcv(self.ticker)        
+        self.data_ohlcv = self.dreader.get_ohlcv(self.ticker)  
         self.data_raw = self.data_ohlcv.dropna()#.interpolate()
 
         return self.data_raw
