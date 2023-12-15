@@ -63,7 +63,9 @@ class TechnicalAnalysis():
         df_ta['AR'] = ta.AROONOSC(df_ta['High'],df_ta['Low'], timeperiod=14)
         df_ta["VR"] = tal.pvr(df_ta['Close'],df_ta['Volume'])
         kc = tal.kc(df_ta['High'],df_ta['Low'], df_ta['Close'])
+        print("kc", kc)
         df_ta = df_ta.join(kc)
+        print("df_ta:", df_ta)
         k = tal.kdj(df_ta['High'],df_ta['Low'], df_ta['Close'])
         df_ta = df_ta.join(k)
         df_ta['SAR'] = ta.SAR(df_ta['High'],df_ta['Low'], acceleration=0, maximum=0)
@@ -465,8 +467,9 @@ class TechnicalAnalysis():
     def get_auro_score(self):
         #data_raw = get_data(s)
         self.resultdic = {}
+        print(self.ticker)
         self.resultdic['Tickername'] = self.ticker
-        
+        print(self.data_raw)
         self.data_ta = self.compute_technical_indicators(self.data_raw)
         self.data_ta_encoded = self.encode_technical_indicators(self.data_ta)
         self.data_processed = self.preprocess_data(self.data_ta_encoded)

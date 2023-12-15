@@ -30,8 +30,9 @@ def get_technical_data():
     print ("FlaskAppFinal.get_technical_data: running TechnicalAnalysis for {}, type {}".format(ticker, type(ticker)))
     
     t = str(ticker)
+    print(t)
     tana = TechnicalAnalysis(t)
-
+    print("tana", tana)
     result_dict = tana.get_auro_score()
     #print ("FlaskAppFinal.get_technical_data: data received from TechnicalAnalysis module is {} ".format(result_dict))
     result_dict_json = json.loads(json.dumps(result_dict, cls=NumpyEncoder)) # Fix the Error - Object of type int64 is not JSON serializable
