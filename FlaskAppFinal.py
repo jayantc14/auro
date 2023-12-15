@@ -36,7 +36,12 @@ def get_technical_data():
     result_dict = tana.get_auro_score()
     #print ("FlaskAppFinal.get_technical_data: data received from TechnicalAnalysis module is {} ".format(result_dict))
     result_dict_json = json.loads(json.dumps(result_dict, cls=NumpyEncoder)) # Fix the Error - Object of type int64 is not JSON serializable
-    return {'result' : result_dict_json}
+    if isinstance(result_dict_json['message'], str):
+        message_data = json.loads(result_dict_json['message'])
+        result_dict_json["message"] = message_data
+        return {'result' : result_dict_json}
+    else:
+        return {'result' : result_dict_json}
 
 app.run(host='0.0.0.0', port=8088)
 
